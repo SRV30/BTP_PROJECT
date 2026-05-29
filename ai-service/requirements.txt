@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+crewai
+crewai-tools
+groq
+python-dotenv
+pydantic
+pydantic-settings
+httpx
+python-json-logger
