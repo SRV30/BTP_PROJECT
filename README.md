@@ -160,6 +160,15 @@ Protected frontend pages use a Context API auth provider and redirect unauthenti
 
 Mood Engine labels are normalized to `Happy`, `Neutral`, or `Sad`. The protected storage endpoint accepts `sleep` or `sleepHours`, `steps`, `screenTime`, `date`, and `appUsage` fields such as `instagram`, `whatsapp`, `linkedin`, `gmail`, and `unacademy`.
 
+### Stress Engine
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/stress-engine/preview` | Calculate a 0-100 `stressScore`, `stressLabel`, and factor breakdown without storing data |
+| `POST` | `/api/stress-engine` | Protected route that updates the authenticated user's existing `DailyMetrics` stress score for a date |
+
+Stress Engine labels are normalized to `Low`, `Moderate`, or `High`. Inputs are `sleep` or `sleepHours`, `steps`, `screenTime`, and Instagram usage via `instagram` or `appUsage.instagram`.
+
 The forgot/reset password routes are also mounted at root-level aliases:
 
 - `POST /forgot-password`

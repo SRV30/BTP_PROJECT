@@ -1,4 +1,5 @@
 const DailyMetrics = require('../models/DailyMetrics')
+const { calculateStress } = require('./stressEngineService')
 
 const APP_USAGE_FIELDS = ['instagram', 'whatsapp', 'linkedin', 'gmail', 'unacademy']
 
@@ -27,17 +28,13 @@ const getMoodLabel = (moodScore) => {
   return 'Sad'
 }
 
-const calculateStressScore = ({ sleep, steps, screenTime, appUsage = {} }) => {
-  const socialUsage = toNumber(appUsage.instagram) + toNumber(appUsage.whatsapp)
-  const productivityUsage = toNumber(appUsage.linkedin) + toNumber(appUsage.gmail) + toNumber(appUsage.unacademy)
-  const sleepPenalty = clamp((7 - sleep) * 9, -12, 32)
-  const inactivityPenalty = clamp((6000 - steps) / 200, -10, 28)
-  const screenPenalty = clamp((screenTime - 4) * 7, -8, 32)
-  const socialPenalty = clamp(socialUsage / 18, 0, 18)
-  const productivityOffset = clamp(productivityUsage / 35, 0, 8)
-
-  return Math.round(clamp(38 + sleepPenalty + inactivityPenalty + screenPenalty + socialPenalty - productivityOffset, 0, 100))
-}
+const calculateStressScore = ({ sleep, steps, screenTime, appUsage = {} }) =>
+  calculateStress({
+    sleep,
+    steps,
+    screenTime,
+    instagram: appUsage.instagram,
+  }).stressScore
 
 const calculateMood = ({ sleep, steps, screenTime, appUsage = {} }) => {
   const normalizedSleep = toNumber(sleep)
