@@ -19,9 +19,9 @@ const Login = () => {
       email: validateEmail(formValues.email),
       password: validatePassword(formValues.password),
     }),
-    successMessage: 'Login validated. Redirecting to your MoodSense dashboard...',
-    onSuccess: () => {
-      login()
+    successMessage: 'Login successful. Redirecting to your MoodSense dashboard...',
+    onSuccess: async (formValues) => {
+      await login(formValues)
       navigate('/dashboard')
     },
   })

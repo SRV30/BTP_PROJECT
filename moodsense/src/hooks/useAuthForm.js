@@ -13,7 +13,7 @@ export const useAuthForm = ({ initialValues, onSuccess, onValidate, successMessa
     setStatus(null)
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const nextErrors = onValidate(values)
     const hasErrors = Object.values(nextErrors).some(Boolean)
@@ -28,11 +28,14 @@ export const useAuthForm = ({ initialValues, onSuccess, onValidate, successMessa
     setIsLoading(true)
     setStatus(null)
 
-    window.setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await onSuccess?.(values)
       setStatus({ type: 'success', message: successMessage })
-      onSuccess?.()
-    }, 800)
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return {

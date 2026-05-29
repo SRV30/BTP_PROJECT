@@ -103,7 +103,7 @@ npm install
 npm run dev
 ```
 
-The Vite frontend runs on `http://localhost:5173` by default.
+The Vite frontend runs on `http://localhost:5173` by default. Set `VITE_API_BASE_URL` in `moodsense/.env` to switch between local and deployed backend URLs, for example `http://localhost:5000/api` or `https://your-api.example.com/api`.
 
 ### Frontend Scripts
 

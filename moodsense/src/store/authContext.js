@@ -1,9 +1,11 @@
 import { createContext } from 'react'
 
-export const DUMMY_AUTH_STATE = false
-
 export const AuthContext = createContext({
-  isAuthenticated: DUMMY_AUTH_STATE,
-  login: () => {},
-  logout: () => {},
+  isAuthenticated: false,
+  isAuthLoading: false,
+  token: null,
+  user: null,
+  login: async () => {},
+  signup: async () => {},
+  logout: async () => {},
 })

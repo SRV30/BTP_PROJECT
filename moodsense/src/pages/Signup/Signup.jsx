@@ -12,7 +12,7 @@ import { validateEmail, validatePassword, validatePasswordMatch, validateRequire
 
 const Signup = () => {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { signup } = useAuth()
   const { errors, handleChange, handleSubmit, isLoading, status, values } = useAuthForm({
     initialValues: { fullName: '', email: '', password: '', confirmPassword: '' },
     onValidate: (formValues) => ({
@@ -21,9 +21,9 @@ const Signup = () => {
       password: validatePassword(formValues.password),
       confirmPassword: validatePasswordMatch(formValues.password, formValues.confirmPassword),
     }),
-    successMessage: 'Account details validated. Your MoodSense workspace is ready to personalize.',
-    onSuccess: () => {
-      login()
+    successMessage: 'Account created. Your MoodSense workspace is ready to personalize.',
+    onSuccess: async (formValues) => {
+      await signup(formValues)
       navigate('/dashboard')
     },
   })

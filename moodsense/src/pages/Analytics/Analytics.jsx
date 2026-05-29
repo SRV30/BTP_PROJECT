@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { AreaAnalyticsChart } from '../../components/charts/AreaAnalyticsChart'
 import { AnalyticsChartCard } from '../../components/charts/AnalyticsChartCard'
 import { BarAnalyticsChart } from '../../components/charts/BarAnalyticsChart'
@@ -5,9 +6,18 @@ import { DonutAnalyticsChart } from '../../components/charts/DonutAnalyticsChart
 import { LineAnalyticsChart } from '../../components/charts/LineAnalyticsChart'
 import { StressHeatmap } from '../../components/charts/StressHeatmap'
 import { DashboardCard } from '../../components/dashboard/DashboardCard'
+import { PageState } from '../../components/ui/PageState'
 import { analyticsDailyData, analyticsEmotionDistribution, analyticsRangeOptions, productiveApps, stressHeatmap } from '../../data/analyticsData'
+import { useApiResource } from '../../hooks/useApiResource'
+import { appApi } from '../../services/appApi'
 
-const Analytics = () => (
+const Analytics = () => {
+  const loadAnalytics = useCallback(() => appApi.analytics(), [])
+  const { data, error, isLoading } = useApiResource(loadAnalytics)
+  const dailyData = data?.dailyData || analyticsDailyData
+  const emotions = data?.emotionDistribution || analyticsEmotionDistribution
+
+  return (
   <div className="mx-auto max-w-7xl space-y-6 pb-6">
     <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
@@ -27,6 +37,7 @@ const Analytics = () => (
         ))}
       </div>
     </header>
+    <PageState error={error} isLoading={isLoading} />
 
     <section className="grid gap-5 xl:grid-cols-2">
       <AnalyticsChartCard
@@ -38,7 +49,7 @@ const Analytics = () => (
         subtitle="Daily mood scores"
         title="Mood Trend"
       >
-        <LineAnalyticsChart color="#a855f7" data={analyticsDailyData} dataKey="mood" />
+        <LineAnalyticsChart color="#a855f7" data={dailyData} dataKey="mood" />
       </AnalyticsChartCard>
 
       <AnalyticsChartCard
@@ -50,7 +61,7 @@ const Analytics = () => (
         subtitle="Daily sleep hours"
         title="Sleep Analysis"
       >
-        <BarAnalyticsChart color="#38bdf8" data={analyticsDailyData} dataKey="sleep" />
+        <BarAnalyticsChart color="#38bdf8" data={dailyData} dataKey="sleep" />
       </AnalyticsChartCard>
 
       <AnalyticsChartCard
@@ -62,7 +73,7 @@ const Analytics = () => (
         subtitle="Steps by day"
         title="Activity Analysis"
       >
-        <BarAnalyticsChart color="#22d3ee" data={analyticsDailyData} dataKey="steps" />
+        <BarAnalyticsChart color="#22d3ee" data={dailyData} dataKey="steps" />
       </AnalyticsChartCard>
 
       <AnalyticsChartCard
@@ -74,11 +85,11 @@ const Analytics = () => (
         subtitle="Daily device usage"
         title="Screen Time Analysis"
       >
-        <AreaAnalyticsChart color="#c084fc" data={analyticsDailyData} dataKey="screenTime" />
+        <AreaAnalyticsChart color="#c084fc" data={dailyData} dataKey="screenTime" />
       </AnalyticsChartCard>
 
       <AnalyticsChartCard title="Emotion Distribution">
-        <DonutAnalyticsChart data={analyticsEmotionDistribution} />
+        <DonutAnalyticsChart data={emotions} />
       </AnalyticsChartCard>
 
       <AnalyticsChartCard
@@ -130,6 +141,7 @@ const Analytics = () => (
       </DashboardCard>
     </section>
   </div>
-)
+  )
+}
 
 export default Analytics
