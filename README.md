@@ -92,6 +92,7 @@ JWT_EXPIRES_IN=7d
 npm start      # Run the Express server with Node
 npm run dev    # Run the Express server with nodemon
 npm run check  # Syntax-check backend source files
+npm run import:excel  # Import Excel files from the top-level data/ folder
 ```
 
 ### 2. Frontend Setup
@@ -163,6 +164,35 @@ The forgot/reset password routes are also mounted at root-level aliases:
 - JWTs are signed with `JWT_SECRET` and expire according to `JWT_EXPIRES_IN`.
 - User emails are normalized to lowercase and validated for uniqueness.
 - Password reset tokens are generated with Node's `crypto` module, stored as SHA-256 hashes, and expire after 10 minutes.
+
+## Excel Data Import
+
+The backend includes an Excel importer for the top-level `data/` folder. It reads every `.xlsx` or `.xls` file, creates users by email when they do not already exist, and inserts `DailyMetrics` records without duplicating existing user/date entries.
+
+Expected source files:
+
+```text
+data/
+├── sahil.xlsx
+├── sachin.xlsx
+├── sourabh.xlsx
+└── abhishek.xlsx
+```
+
+Run the importer after configuring `backend/.env` with `MONGO_URI`:
+
+```bash
+cd backend
+npm install
+npm run import:excel
+```
+
+Optional importer settings:
+
+- `IMPORT_DATA_DIR` can point to a custom Excel folder.
+- `IMPORT_DEFAULT_PASSWORD` sets the temporary password for automatically created users.
+
+The importer uses email as the unique user identifier and the `DailyMetrics` unique `{ userId, date }` index to avoid duplicate metric records.
 
 ## Useful Development Checks
 

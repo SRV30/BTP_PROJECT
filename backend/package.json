@@ -5,8 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js && node --check config/db.js && node --check controllers/authController.js && node --check controllers/healthController.js && node --check controllers/profileController.js && node --check middleware/authMiddleware.js && node --check middleware/errorHandler.js && node --check models/User.js && node --check models/DailyMetrics.js && node --check models/AgentReports.js && node --check routes/authRoutes.js && node --check routes/healthRoutes.js && node --check routes/profileRoutes.js && node --check services/tokenService.js && node --check utils/env.js",
-    "dev": "nodemon server.js"
+    "check": "node --check server.js && node --check app.js && node --check config/db.js && node --check controllers/authController.js && node --check controllers/healthController.js && node --check controllers/profileController.js && node --check middleware/authMiddleware.js && node --check middleware/errorHandler.js && node --check models/User.js && node --check models/DailyMetrics.js && node --check models/AgentReports.js && node --check routes/authRoutes.js && node --check routes/healthRoutes.js && node --check routes/profileRoutes.js && node --check services/tokenService.js && node --check utils/env.js && node --check scripts/importExcelData.js",
+    "dev": "nodemon server.js",
+    "import:excel": "node scripts/importExcelData.js"
   },
   "keywords": [
     "moodsense",
@@ -22,7 +23,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.9.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
