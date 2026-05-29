@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js && node --check config/db.js && node --check controllers/healthController.js && node --check middleware/errorHandler.js && node --check routes/healthRoutes.js && node --check utils/env.js"
+    "check": "node --check server.js && node --check app.js && node --check config/db.js && node --check controllers/authController.js && node --check controllers/healthController.js && node --check middleware/authMiddleware.js && node --check middleware/errorHandler.js && node --check models/User.js && node --check routes/authRoutes.js && node --check routes/healthRoutes.js && node --check services/tokenService.js && node --check utils/env.js"
   },
   "keywords": [
     "moodsense",
