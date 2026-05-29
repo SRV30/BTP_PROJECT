@@ -169,6 +169,15 @@ Mood Engine labels are normalized to `Happy`, `Neutral`, or `Sad`. The protected
 
 Stress Engine labels are normalized to `Low`, `Moderate`, or `High`. Inputs are `sleep` or `sleepHours`, `steps`, `screenTime`, and Instagram usage via `instagram` or `appUsage.instagram`.
 
+### Depression Risk Indicator
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/depression-risk/preview` | Analyze provided 7-day metric data and return `Low Risk`, `Moderate Risk`, or `High Risk` without storing data |
+| `GET` | `/api/depression-risk` | Protected route that analyzes the authenticated user's latest 7-day trends and updates the latest `DailyMetrics.depressionRisk` level |
+
+The Depression Risk Indicator analyzes 7-day trends across sleep, screen time, steps, and mood history. It is only a wellness trend indicator and does not claim or replace a medical diagnosis.
+
 The forgot/reset password routes are also mounted at root-level aliases:
 
 - `POST /forgot-password`
