@@ -151,6 +151,15 @@ Protected frontend pages use a Context API auth provider and redirect unauthenti
 | `POST` | `/api/auth/forgot-password` | Generate a password reset token |
 | `POST` | `/api/auth/reset-password/:token` | Reset password with a valid token and return a JWT |
 
+### Mood Engine
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/mood-engine/preview` | Calculate `moodScore` and `moodLabel` from sleep, steps, screen time, and app usage without storing data |
+| `POST` | `/api/mood-engine` | Protected route that calculates mood output and stores/updates the user's `DailyMetrics` record |
+
+Mood Engine labels are normalized to `Happy`, `Neutral`, or `Sad`. The protected storage endpoint accepts `sleep` or `sleepHours`, `steps`, `screenTime`, `date`, and `appUsage` fields such as `instagram`, `whatsapp`, `linkedin`, `gmail`, and `unacademy`.
+
 The forgot/reset password routes are also mounted at root-level aliases:
 
 - `POST /forgot-password`

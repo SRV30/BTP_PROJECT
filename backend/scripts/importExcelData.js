@@ -6,6 +6,7 @@ const xlsx = require('xlsx')
 const { connectDB } = require('../config/db')
 const DailyMetrics = require('../models/DailyMetrics')
 const User = require('../models/User')
+const { calculateMood, getMoodLabel } = require('../services/moodEngineService')
 
 const DEFAULT_PASSWORD = process.env.IMPORT_DEFAULT_PASSWORD || 'MoodSense@123'
 const DEFAULT_DATA_DIR = path.resolve(__dirname, '../../data')
@@ -151,23 +152,17 @@ const buildMetricPayload = ({ row, userId }) => {
   const sleepHours = toNumber(getRowValue(row, FIELD_ALIASES.sleepHours))
   const steps = Math.round(toNumber(getRowValue(row, FIELD_ALIASES.steps)))
   const screenTime = toNumber(getRowValue(row, FIELD_ALIASES.screenTime))
-  const stressScore = Math.round(
-    clamp(
-      toNumber(getRowValue(row, FIELD_ALIASES.stressScore), deriveStressScore({ sleepHours, steps, screenTime })),
-      0,
-      100,
-    ),
-  )
-  const moodScore = Math.round(
-    clamp(
-      toNumber(getRowValue(row, FIELD_ALIASES.moodScore), deriveMoodScore({ sleepHours, steps, screenTime, stressScore })),
-      0,
-      100,
-    ),
-  )
-  const moodLabel = String(getRowValue(row, FIELD_ALIASES.moodLabel) || moodLabelFromScore(moodScore)).trim()
+  const appUsage = {
+    instagram: toNumber(getRowValue(row, FIELD_ALIASES.instagram)),
+    whatsapp: toNumber(getRowValue(row, FIELD_ALIASES.whatsapp)),
+    linkedin: toNumber(getRowValue(row, FIELD_ALIASES.linkedin)),
+    gmail: toNumber(getRowValue(row, FIELD_ALIASES.gmail)),
+    unacademy: toNumber(getRowValue(row, FIELD_ALIASES.unacademy)),
+  }
+  const mood = calculateMood({ sleep: sleepHours, steps, screenTime, appUsage })
   const depressionRisk = normalizeDepressionRisk(
-    getRowValue(row, FIELD_ALIASES.depressionRisk) || depressionRiskFromScores(moodScore, stressScore, sleepHours),
+    getRowValue(row, FIELD_ALIASES.depressionRisk) ||
+      depressionRiskFromScores(mood.moodScore, mood.stressScore, sleepHours),
   )
 
   return {
@@ -176,20 +171,16 @@ const buildMetricPayload = ({ row, userId }) => {
     sleepHours,
     steps,
     screenTime,
-    instagram: toNumber(getRowValue(row, FIELD_ALIASES.instagram)),
-    whatsapp: toNumber(getRowValue(row, FIELD_ALIASES.whatsapp)),
-    linkedin: toNumber(getRowValue(row, FIELD_ALIASES.linkedin)),
-    gmail: toNumber(getRowValue(row, FIELD_ALIASES.gmail)),
-    unacademy: toNumber(getRowValue(row, FIELD_ALIASES.unacademy)),
-    moodScore,
-    moodLabel,
-    stressScore,
+    ...appUsage,
+    moodScore: mood.moodScore,
+    moodLabel: mood.moodLabel,
+    stressScore: mood.stressScore,
     depressionRisk,
     tomorrowPrediction: {
-      moodLabel: moodLabelFromScore(clamp(moodScore + 2, 0, 100)),
-      moodScore: clamp(moodScore + 2, 0, 100),
+      moodLabel: getMoodLabel(clamp(mood.moodScore + 2, 0, 100)),
+      moodScore: clamp(mood.moodScore + 2, 0, 100),
       confidence: 82,
-      stressScore: clamp(stressScore - 3, 0, 100),
+      stressScore: clamp(mood.stressScore - 3, 0, 100),
     },
   }
 }
