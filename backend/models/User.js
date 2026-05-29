@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema(
@@ -29,6 +30,14 @@ const userSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpire: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -48,9 +57,20 @@ userSchema.methods.comparePassword = function comparePassword(candidatePassword)
   return bcrypt.compare(candidatePassword, this.password)
 }
 
+userSchema.methods.createPasswordResetToken = function createPasswordResetToken() {
+  const resetToken = crypto.randomBytes(32).toString('hex')
+
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000
+
+  return resetToken
+}
+
 userSchema.methods.toJSON = function toJSON() {
   const user = this.toObject()
   delete user.password
+  delete user.resetPasswordToken
+  delete user.resetPasswordExpire
   delete user.__v
   return user
 }

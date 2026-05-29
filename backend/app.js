@@ -26,6 +26,7 @@ app.get('/', (_req, res) => {
 app.use('/health', healthRoutes)
 app.use('/api/health', healthRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/', authRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)
