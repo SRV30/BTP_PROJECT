@@ -1,4 +1,4 @@
-import { Link } from '../../routes/routerPrimitives'
+import { Link } from 'react-router-dom'
 import { cx } from '../../utils/formatters'
 
 const baseStyles = 'inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2 focus:ring-offset-slate-950'

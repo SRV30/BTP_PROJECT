@@ -1,3 +1,4 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '../components/layout/AppShell'
 import AIInsights from '../pages/AIInsights/AIInsights'
 import Analytics from '../pages/Analytics/Analytics'
@@ -6,23 +7,19 @@ import Login from '../pages/Login/Login'
 import Predictions from '../pages/Predictions/Predictions'
 import Profile from '../pages/Profile/Profile'
 import Splash from '../pages/Splash/Splash'
-import { useRouter } from './routerContext'
-import { Navigate } from './routerPrimitives'
 
-const appPages = {
-  '/dashboard': <Dashboard />,
-  '/analytics': <Analytics />,
-  '/ai-insights': <AIInsights />,
-  '/predictions': <Predictions />,
-  '/profile': <Profile />,
-}
-
-export const AppRoutes = () => {
-  const { path } = useRouter()
-
-  if (path === '/') return <Splash />
-  if (path === '/login') return <Login />
-  if (appPages[path]) return <AppShell>{appPages[path]}</AppShell>
-
-  return <Navigate replace to="/" />
-}
+export const AppRoutes = () => (
+  <Routes>
+    <Route element={<Splash />} path="/" />
+    <Route element={<Login />} path="/login" />
+    <Route element={<AppShell />}>
+      <Route element={<Navigate replace to="/dashboard" />} path="/app" />
+      <Route element={<Dashboard />} path="/dashboard" />
+      <Route element={<Analytics />} path="/analytics" />
+      <Route element={<AIInsights />} path="/ai-insights" />
+      <Route element={<Predictions />} path="/predictions" />
+      <Route element={<Profile />} path="/profile" />
+    </Route>
+    <Route element={<Navigate replace to="/" />} path="*" />
+  </Routes>
+)

@@ -1,4 +1,4 @@
-import { NavLink } from '../../routes/routerPrimitives'
+import { NavLink } from 'react-router-dom'
 import { navigationItems } from '../../constants/navigation'
 import { BrandLogo } from '../common/BrandLogo'
 
