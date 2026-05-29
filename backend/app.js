@@ -2,6 +2,7 @@ const cors = require('cors')
 const express = require('express')
 const authRoutes = require('./routes/authRoutes')
 const healthRoutes = require('./routes/healthRoutes')
+const profileRoutes = require('./routes/profileRoutes')
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler')
 const { env } = require('./utils/env')
 
@@ -26,7 +27,9 @@ app.get('/', (_req, res) => {
 app.use('/health', healthRoutes)
 app.use('/api/health', healthRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api', profileRoutes)
 app.use('/', authRoutes)
+app.use('/', profileRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)
