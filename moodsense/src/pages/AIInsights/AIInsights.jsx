@@ -1,15 +1,34 @@
-import { PageHeader } from '../../components/ui/PageHeader'
+import { AgentReportSection } from '../../components/insights/AgentReportSection'
+import { DepressionRiskAnalysisCard } from '../../components/insights/DepressionRiskAnalysisCard'
+import { InsightTabs } from '../../components/insights/InsightTabs'
+import { MoodAnalysisCard } from '../../components/insights/MoodAnalysisCard'
+import { PredictionAnalysisCard } from '../../components/insights/PredictionAnalysisCard'
+import { RecommendationsCard } from '../../components/insights/RecommendationsCard'
+import { StressAnalysisCard } from '../../components/insights/StressAnalysisCard'
+import { TodayInsightCard } from '../../components/insights/TodayInsightCard'
 
 const AIInsights = () => (
-  <div className="space-y-6">
-    <PageHeader
-      eyebrow="MoodSense AI"
-      title="AI Insights"
-      description="Scalable placeholder page ready for feature-specific components, data services, and responsive content sections."
-    />
-    <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl shadow-slate-950/30">
-      <p className="text-slate-300">Build the AI Insights experience here while keeping page logic isolated from shared components and services.</p>
+  <div className="mx-auto max-w-7xl space-y-6 pb-6">
+    <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-violet-300">CrewAI intelligence</p>
+        <h1 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">AI Insights</h1>
+        <p className="mt-2 max-w-2xl text-slate-400">Review agent-generated mood, stress, prediction, depression-risk, and wellness coaching analysis.</p>
+      </div>
+      <InsightTabs />
+    </header>
+
+    <TodayInsightCard />
+
+    <section className="grid gap-5 xl:grid-cols-2">
+      <MoodAnalysisCard />
+      <StressAnalysisCard />
+      <DepressionRiskAnalysisCard />
+      <PredictionAnalysisCard />
     </section>
+
+    <RecommendationsCard />
+    <AgentReportSection />
   </div>
 )
 
