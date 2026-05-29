@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export const useAuthForm = ({ initialValues, onValidate, successMessage }) => {
+export const useAuthForm = ({ initialValues, onSuccess, onValidate, successMessage }) => {
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
@@ -31,6 +31,7 @@ export const useAuthForm = ({ initialValues, onValidate, successMessage }) => {
     window.setTimeout(() => {
       setIsLoading(false)
       setStatus({ type: 'success', message: successMessage })
+      onSuccess?.()
     }, 800)
   }
 

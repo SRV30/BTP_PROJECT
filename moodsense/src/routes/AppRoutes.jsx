@@ -10,6 +10,7 @@ import Profile from '../pages/Profile/Profile'
 import ResetPassword from '../pages/ResetPassword/ResetPassword'
 import Signup from '../pages/Signup/Signup'
 import Splash from '../pages/Splash/Splash'
+import { ProtectedRoute } from './ProtectedRoute'
 
 export const AppRoutes = () => (
   <Routes>
@@ -18,13 +19,16 @@ export const AppRoutes = () => (
     <Route element={<Signup />} path="/signup" />
     <Route element={<ForgotPassword />} path="/forgot-password" />
     <Route element={<ResetPassword />} path="/reset-password" />
-    <Route element={<AppShell />}>
-      <Route element={<Navigate replace to="/dashboard" />} path="/app" />
-      <Route element={<Dashboard />} path="/dashboard" />
-      <Route element={<Analytics />} path="/analytics" />
-      <Route element={<AIInsights />} path="/ai-insights" />
-      <Route element={<Predictions />} path="/predictions" />
-      <Route element={<Profile />} path="/profile" />
+    <Route element={<ProtectedRoute />}>
+      <Route element={<AppShell />}>
+        <Route element={<Navigate replace to="/dashboard" />} path="/app" />
+        <Route element={<Dashboard />} path="/dashboard" />
+        <Route element={<Analytics />} path="/analytics" />
+        <Route element={<AIInsights />} path="/insights" />
+        <Route element={<Navigate replace to="/insights" />} path="/ai-insights" />
+        <Route element={<Predictions />} path="/predictions" />
+        <Route element={<Profile />} path="/profile" />
+      </Route>
     </Route>
     <Route element={<Navigate replace to="/" />} path="*" />
   </Routes>

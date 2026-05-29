@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AuthCard } from '../../components/auth/AuthCard'
 import { AuthLayout } from '../../components/auth/AuthLayout'
 import { AuthStatus } from '../../components/auth/AuthStatus'
@@ -6,10 +6,13 @@ import { AuthSubmitButton } from '../../components/auth/AuthSubmitButton'
 import { FormField } from '../../components/auth/FormField'
 import { PasswordField } from '../../components/auth/PasswordField'
 import { SocialAuth } from '../../components/auth/SocialAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { useAuthForm } from '../../hooks/useAuthForm'
 import { validateEmail, validatePassword } from '../../utils/authValidation'
 
 const Login = () => {
+  const navigate = useNavigate()
+  const { login } = useAuth()
   const { errors, handleChange, handleSubmit, isLoading, status, values } = useAuthForm({
     initialValues: { email: '', password: '' },
     onValidate: (formValues) => ({
@@ -17,6 +20,10 @@ const Login = () => {
       password: validatePassword(formValues.password),
     }),
     successMessage: 'Login validated. Redirecting to your MoodSense dashboard...',
+    onSuccess: () => {
+      login()
+      navigate('/dashboard')
+    },
   })
 
   return (
