@@ -1,5 +1,6 @@
 const AgentReports = require('../models/AgentReports')
 const DailyMetrics = require('../models/DailyMetrics')
+const { analyzeDailyMetrics } = require('../services/aiService')
 
 const dayName = (date) => new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date(date))
 
@@ -19,6 +20,63 @@ const getMetrics = async (userId) => {
 }
 
 const getLatest = (metrics) => metrics[metrics.length - 1]
+
+const toRecommendationLabels = (recommendations = []) => recommendations.map((recommendation) => {
+  if (typeof recommendation === 'string') {
+    return recommendation
+  }
+
+  return recommendation.title || recommendation.description
+}).filter(Boolean)
+
+const toAgentReports = (aiData, fallbackReport) => {
+  if (!aiData) {
+    return fallbackReport
+  }
+
+  return {
+    behaviorSummary: aiData.behaviorSummary,
+    moodAgent: {
+      agentName: 'Mood Agent',
+      status: 'Generated',
+      summary: aiData.moodAnalysis,
+      recommendations: [],
+      confidence: 0,
+    },
+    stressAgent: {
+      agentName: 'Stress Agent',
+      status: 'Generated',
+      summary: aiData.stressAnalysis,
+      recommendations: [],
+      confidence: 0,
+    },
+    depressionAgent: {
+      agentName: 'Depression Agent',
+      status: 'Generated',
+      summary: aiData.depressionAnalysis,
+      recommendations: [],
+      confidence: 0,
+    },
+    predictionAgent: {
+      agentName: 'Prediction Agent',
+      status: 'Generated',
+      summary: aiData.predictionAnalysis,
+      recommendations: [],
+      confidence: 0,
+    },
+    wellnessCoachAgent: {
+      agentName: 'Wellness Coach Agent',
+      status: 'Generated',
+      summary: toRecommendationLabels(aiData.recommendations).join(' • '),
+      recommendations: toRecommendationLabels(aiData.recommendations),
+      confidence: 0,
+    },
+    overallSummary: aiData.behaviorSummary,
+    model: aiData.model,
+    generatedAt: aiData.generatedAt,
+    cached: aiData.cached,
+  }
+}
 
 const average = (metrics, field) => Math.round(metrics.reduce((total, metric) => total + Number(metric[field] || 0), 0) / metrics.length)
 
@@ -109,15 +167,46 @@ const getAiInsights = async (req, res, next) => {
   try {
     const metrics = await getMetrics(req.user._id)
     const latest = getLatest(metrics)
-    const agentReport = await AgentReports.findOne({ userId: req.user._id }).sort({ date: -1 }).lean()
+    const [agentReport, aiAnalysis] = await Promise.all([
+      AgentReports.findOne({ userId: req.user._id }).sort({ date: -1 }).lean(),
+      analyzeDailyMetrics({ metrics, user: req.user }),
+    ])
+    const aiData = aiAnalysis.data
+    const recommendationLabels = toRecommendationLabels(aiData?.recommendations)
+
     return res.status(200).json({
-      todayInsight: 'Your mood is elevated. You have been more positive than most tracked days.',
-      moodAnalysis: { score: latest.moodScore, mood: latest.moodLabel, trend: 'Improving' },
-      stressAnalysis: { score: latest.stressScore, level: latest.stressScore >= 70 ? 'High' : latest.stressScore >= 40 ? 'Moderate' : 'Low' },
+      todayInsight: aiData?.behaviorSummary || 'Your mood is elevated. You have been more positive than most tracked days.',
+      moodAnalysis: {
+        score: latest.moodScore,
+        mood: latest.moodLabel,
+        trend: aiAnalysis.payload?.weeklyTrend || 'Stable',
+        explanation: aiData?.moodAnalysis,
+      },
+      stressAnalysis: {
+        score: latest.stressScore,
+        level: latest.stressScore >= 70 ? 'High' : latest.stressScore >= 40 ? 'Moderate' : 'Low',
+        explanation: aiData?.stressAnalysis,
+      },
       depressionRisk: latest.depressionRisk?.endsWith('Risk') ? latest.depressionRisk : `${latest.depressionRisk} Risk`,
-      prediction: latest.tomorrowPrediction,
-      recommendations: ['Walk 15 minutes', 'Sleep before 11 PM', 'Reduce Instagram by 20 mins'],
-      agentReport,
+      depressionAnalysis: aiData?.depressionAnalysis,
+      prediction: {
+        ...latest.tomorrowPrediction,
+        explanation: aiData?.predictionAnalysis,
+      },
+      recommendations: recommendationLabels.length > 0 ? recommendationLabels : ['Walk 15 minutes', 'Sleep before 11 PM', 'Reduce Instagram by 20 mins'],
+      weeklyMoodStatistics: {
+        weeklyTrend: aiAnalysis.payload?.weeklyTrend,
+        happyDays: aiAnalysis.payload?.happyDays,
+        neutralDays: aiAnalysis.payload?.neutralDays,
+        sadDays: aiAnalysis.payload?.sadDays,
+        weeklyMoodScores: aiAnalysis.payload?.weeklyMoodScores,
+      },
+      currentTimeSlot: aiAnalysis.payload?.currentTimeSlot,
+      aiService: {
+        success: aiAnalysis.success,
+        error: aiAnalysis.error,
+      },
+      agentReport: toAgentReports(aiData, agentReport),
     })
   } catch (error) {
     next(error)
