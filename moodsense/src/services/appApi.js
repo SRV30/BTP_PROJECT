@@ -7,4 +7,5 @@ export const appApi = {
   insights: async () => (await apiClient.get('/insights')).data,
   profile: async () => (await apiClient.get('/profile')).data,
   updateProfile: async (payload) => (await apiClient.put('/profile', payload)).data,
+  changePassword: async (payload) => (await apiClient.put('/change-password', payload)).data,
 }
