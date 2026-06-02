@@ -1,6 +1,6 @@
 const AgentReports = require('../models/AgentReports')
 const DailyMetrics = require('../models/DailyMetrics')
-const { analyzeDailyMetrics } = require('../services/aiService')
+const { analyzeDailyMetrics, buildFastApiPayload } = require('../services/aiService')
 
 const dayName = (date) => new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date(date))
 
@@ -21,6 +21,12 @@ const getMetrics = async (userId) => {
 
 const getLatest = (metrics) => metrics[metrics.length - 1]
 
+const normalizeReportDate = (value = new Date()) => {
+  const date = new Date(value)
+  date.setUTCHours(0, 0, 0, 0)
+  return date
+}
+
 const toRecommendationLabels = (recommendations = []) => recommendations.map((recommendation) => {
   if (typeof recommendation === 'string') {
     return recommendation
@@ -29,12 +35,18 @@ const toRecommendationLabels = (recommendations = []) => recommendations.map((re
   return recommendation.title || recommendation.description
 }).filter(Boolean)
 
-const toAgentReports = (aiData, fallbackReport) => {
+const toAgentReports = (aiData, report = {}) => {
   if (!aiData) {
-    return fallbackReport
+    return null
   }
 
+  const recommendations = toRecommendationLabels(aiData.recommendations)
+
   return {
+    id: report?._id,
+    dailyMetricsId: report?.dailyMetricsId,
+    date: report?.date,
+    source: report?.source || 'FastAPI',
     behaviorSummary: aiData.behaviorSummary,
     moodAgent: {
       agentName: 'Mood Agent',
@@ -67,8 +79,8 @@ const toAgentReports = (aiData, fallbackReport) => {
     wellnessCoachAgent: {
       agentName: 'Wellness Coach Agent',
       status: 'Generated',
-      summary: toRecommendationLabels(aiData.recommendations).join(' • '),
-      recommendations: toRecommendationLabels(aiData.recommendations),
+      summary: recommendations.join(' • '),
+      recommendations,
       confidence: 0,
     },
     overallSummary: aiData.behaviorSummary,
@@ -76,6 +88,66 @@ const toAgentReports = (aiData, fallbackReport) => {
     generatedAt: aiData.generatedAt,
     cached: aiData.cached,
   }
+}
+
+const toWeeklyMoodStatistics = (payload = {}) => ({
+  weeklyTrend: payload.weeklyTrend,
+  happyDays: payload.happyDays,
+  neutralDays: payload.neutralDays,
+  sadDays: payload.sadDays,
+  weeklyMoodScores: payload.weeklyMoodScores,
+})
+
+const buildInsightsResponse = ({ latest, aiData, payload, aiService, report }) => {
+  const recommendationLabels = toRecommendationLabels(aiData?.recommendations)
+
+  return {
+    todayInsight: aiData?.behaviorSummary || 'Your mood is elevated. You have been more positive than most tracked days.',
+    moodAnalysis: {
+      score: latest.moodScore,
+      mood: latest.moodLabel,
+      trend: payload?.weeklyTrend || 'Stable',
+      explanation: aiData?.moodAnalysis,
+    },
+    stressAnalysis: {
+      score: latest.stressScore,
+      level: latest.stressScore >= 70 ? 'High' : latest.stressScore >= 40 ? 'Moderate' : 'Low',
+      explanation: aiData?.stressAnalysis,
+    },
+    depressionRisk: payload?.depressionRisk || (latest.depressionRisk?.endsWith('Risk') ? latest.depressionRisk : `${latest.depressionRisk} Risk`),
+    depressionAnalysis: aiData?.depressionAnalysis,
+    prediction: {
+      ...latest.tomorrowPrediction,
+      explanation: aiData?.predictionAnalysis,
+    },
+    recommendations: recommendationLabels.length > 0 ? recommendationLabels : ['Walk 15 minutes', 'Sleep before 11 PM', 'Reduce Instagram by 20 mins'],
+    weeklyMoodStatistics: toWeeklyMoodStatistics(payload),
+    currentTimeSlot: payload?.currentTimeSlot,
+    aiService,
+    agentReport: toAgentReports(aiData, report),
+  }
+}
+
+const saveAnalysisReport = async ({ userId, latest, reportDate, aiAnalysis }) => {
+  if (!aiAnalysis.success || !aiAnalysis.data) {
+    return null
+  }
+
+  const update = {
+    dailyMetricsId: latest._id,
+    requestPayload: aiAnalysis.payload,
+    analysis: {
+      ...aiAnalysis.data,
+      cached: false,
+    },
+    source: 'FastAPI',
+  }
+
+  return AgentReports.findOneAndUpdate(
+    { userId, date: reportDate },
+    { $set: update, $setOnInsert: { userId, date: reportDate } },
+    { new: true, upsert: true, setDefaultsOnInsert: true, lean: true },
+  )
 }
 
 const average = (metrics, field) => Math.round(metrics.reduce((total, metric) => total + Number(metric[field] || 0), 0) / metrics.length)
@@ -167,47 +239,45 @@ const getAiInsights = async (req, res, next) => {
   try {
     const metrics = await getMetrics(req.user._id)
     const latest = getLatest(metrics)
-    const [agentReport, aiAnalysis] = await Promise.all([
-      AgentReports.findOne({ userId: req.user._id }).sort({ date: -1 }).lean(),
-      analyzeDailyMetrics({ metrics, user: req.user }),
-    ])
-    const aiData = aiAnalysis.data
-    const recommendationLabels = toRecommendationLabels(aiData?.recommendations)
+    const reportDate = normalizeReportDate(latest.date)
+    const cachedReport = await AgentReports.findOne({ userId: req.user._id, date: reportDate }).lean()
 
-    return res.status(200).json({
-      todayInsight: aiData?.behaviorSummary || 'Your mood is elevated. You have been more positive than most tracked days.',
-      moodAnalysis: {
-        score: latest.moodScore,
-        mood: latest.moodLabel,
-        trend: aiAnalysis.payload?.weeklyTrend || 'Stable',
-        explanation: aiData?.moodAnalysis,
-      },
-      stressAnalysis: {
-        score: latest.stressScore,
-        level: latest.stressScore >= 70 ? 'High' : latest.stressScore >= 40 ? 'Moderate' : 'Low',
-        explanation: aiData?.stressAnalysis,
-      },
-      depressionRisk: latest.depressionRisk?.endsWith('Risk') ? latest.depressionRisk : `${latest.depressionRisk} Risk`,
-      depressionAnalysis: aiData?.depressionAnalysis,
-      prediction: {
-        ...latest.tomorrowPrediction,
-        explanation: aiData?.predictionAnalysis,
-      },
-      recommendations: recommendationLabels.length > 0 ? recommendationLabels : ['Walk 15 minutes', 'Sleep before 11 PM', 'Reduce Instagram by 20 mins'],
-      weeklyMoodStatistics: {
-        weeklyTrend: aiAnalysis.payload?.weeklyTrend,
-        happyDays: aiAnalysis.payload?.happyDays,
-        neutralDays: aiAnalysis.payload?.neutralDays,
-        sadDays: aiAnalysis.payload?.sadDays,
-        weeklyMoodScores: aiAnalysis.payload?.weeklyMoodScores,
-      },
-      currentTimeSlot: aiAnalysis.payload?.currentTimeSlot,
+    if (cachedReport) {
+      return res.status(200).json(buildInsightsResponse({
+        latest,
+        aiData: cachedReport.analysis,
+        payload: cachedReport.requestPayload,
+        aiService: {
+          success: true,
+          cached: true,
+          source: 'MongoDB Cache',
+          error: null,
+        },
+        report: { ...cachedReport, source: 'MongoDB Cache' },
+      }))
+    }
+
+    const aiAnalysis = await analyzeDailyMetrics({ metrics, user: req.user })
+    const savedReport = await saveAnalysisReport({
+      userId: req.user._id,
+      latest,
+      reportDate,
+      aiAnalysis,
+    })
+    const payload = aiAnalysis.payload || buildFastApiPayload({ metrics, user: req.user })
+
+    return res.status(200).json(buildInsightsResponse({
+      latest,
+      aiData: aiAnalysis.data,
+      payload,
       aiService: {
         success: aiAnalysis.success,
+        cached: false,
+        source: aiAnalysis.success ? 'FastAPI' : null,
         error: aiAnalysis.error,
       },
-      agentReport: toAgentReports(aiData, agentReport),
-    })
+      report: savedReport,
+    }))
   } catch (error) {
     next(error)
   }

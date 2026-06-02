@@ -1,32 +1,95 @@
 const mongoose = require('mongoose')
 
-const agentOutputSchema = new mongoose.Schema(
+const recommendationSchema = new mongoose.Schema(
   {
-    agentName: {
+    title: {
       type: String,
       required: true,
       trim: true,
     },
-    status: {
+    description: {
       type: String,
+      required: true,
       trim: true,
-      default: '',
     },
-    summary: {
+  },
+  { _id: false },
+)
+
+const analysisDataSchema = new mongoose.Schema(
+  {
+    behaviorSummary: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    moodAnalysis: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    stressAnalysis: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    depressionAnalysis: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    predictionAnalysis: {
       type: String,
       required: true,
       trim: true,
     },
     recommendations: {
-      type: [String],
+      type: [recommendationSchema],
       default: [],
     },
-    confidence: {
-      type: Number,
-      min: 0,
-      max: 100,
-      default: 0,
+    model: {
+      type: String,
+      trim: true,
+      default: '',
     },
+    generatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    cached: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false },
+)
+
+const requestPayloadSchema = new mongoose.Schema(
+  {
+    userId: String,
+    userName: String,
+    currentDate: String,
+    currentTimeSlot: String,
+    averageSleep: Number,
+    averageSteps: Number,
+    averageScreenTime: Number,
+    instagramUsage: Number,
+    whatsappUsage: Number,
+    linkedinUsage: Number,
+    gmailUsage: Number,
+    unacademyUsage: Number,
+    moodScore: Number,
+    moodLabel: String,
+    stressScore: Number,
+    stressLevel: String,
+    depressionRisk: String,
+    tomorrowMood: String,
+    tomorrowConfidence: Number,
+    weeklyTrend: String,
+    happyDays: Number,
+    neutralDays: Number,
+    sadDays: Number,
+    weeklyMoodScores: [Number],
   },
   { _id: false },
 )
@@ -47,32 +110,24 @@ const agentReportSchema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
-      index: true,
+      set: (value) => {
+        const date = new Date(value)
+        date.setUTCHours(0, 0, 0, 0)
+        return date
+      },
     },
-    moodAgent: {
-      type: agentOutputSchema,
+    requestPayload: {
+      type: requestPayloadSchema,
       required: true,
     },
-    stressAgent: {
-      type: agentOutputSchema,
+    analysis: {
+      type: analysisDataSchema,
       required: true,
     },
-    depressionAgent: {
-      type: agentOutputSchema,
-      required: true,
-    },
-    predictionAgent: {
-      type: agentOutputSchema,
-      required: true,
-    },
-    wellnessCoachAgent: {
-      type: agentOutputSchema,
-      required: true,
-    },
-    overallSummary: {
+    source: {
       type: String,
-      trim: true,
-      default: '',
+      enum: ['FastAPI', 'MongoDB Cache'],
+      default: 'FastAPI',
     },
   },
   {
@@ -80,6 +135,6 @@ const agentReportSchema = new mongoose.Schema(
   },
 )
 
-agentReportSchema.index({ userId: 1, date: 1 })
+agentReportSchema.index({ userId: 1, date: 1 }, { unique: true })
 
 module.exports = mongoose.model('AgentReports', agentReportSchema)
