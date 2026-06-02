@@ -19,6 +19,7 @@ export const AppRoutes = () => (
     <Route element={<Signup />} path="/signup" />
     <Route element={<ForgotPassword />} path="/forgot-password" />
     <Route element={<ResetPassword />} path="/reset-password" />
+    <Route element={<ResetPassword />} path="/reset-password/:token" />
     <Route element={<ProtectedRoute />}>
       <Route element={<AppShell />}>
         <Route element={<Navigate replace to="/dashboard" />} path="/app" />
