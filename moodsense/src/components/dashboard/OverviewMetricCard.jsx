@@ -1,7 +1,7 @@
 import { Line, LineChart, ResponsiveContainer } from 'recharts'
 import { DashboardCard } from './DashboardCard'
 
-export const OverviewMetricCard = ({ color, data, icon, status, suffix, title, value }) => {
+export const OverviewMetricCard = ({ color, data = [], icon, status, suffix, title, value }) => {
   const sparklineData = data.map((point, index) => ({ index, point }))
 
   return (

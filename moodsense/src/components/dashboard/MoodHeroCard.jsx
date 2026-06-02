@@ -1,9 +1,18 @@
 import { DashboardCard } from './DashboardCard'
 
-export const MoodHeroCard = ({ moodLabel = 'Happy', moodScore = 84 }) => {
-  const score = moodScore
+const getMoodStatus = (score) => {
+  if (score >= 80) return 'Very Good'
+  if (score >= 60) return 'Good'
+  if (score >= 40) return 'Neutral'
+  if (Number.isFinite(score)) return 'Needs Care'
+  return 'Unavailable'
+}
+
+export const MoodHeroCard = ({ moodLabel, moodScore }) => {
+  const score = Number(moodScore)
+  const safeScore = Number.isFinite(score) ? score : 0
   const circumference = 2 * Math.PI * 46
-  const offset = circumference - (score / 100) * circumference
+  const offset = circumference - (safeScore / 100) * circumference
 
   return (
     <DashboardCard className="relative overflow-hidden lg:col-span-7">
@@ -25,10 +34,10 @@ export const MoodHeroCard = ({ moodLabel = 'Happy', moodScore = 84 }) => {
           </div>
         </div>
         <div className="space-y-4 text-center sm:text-left">
-          <p className="text-4xl font-black text-emerald-400 sm:text-5xl">{moodLabel}</p>
-          <div className="flex items-end justify-center gap-2 sm:justify-start"><span className="text-5xl font-black text-white sm:text-6xl">{moodScore}</span><span className="pb-2 text-2xl text-slate-500">/100</span></div>
-          <span className="inline-flex rounded-2xl border border-violet-400/30 bg-violet-500/15 px-6 py-2 font-bold text-violet-200">Very Good</span>
-          <p className="text-sm text-slate-300">Keep going! You're doing great.</p>
+          <p className="text-4xl font-black text-emerald-400 sm:text-5xl">{moodLabel || 'Unavailable'}</p>
+          <div className="flex items-end justify-center gap-2 sm:justify-start"><span className="text-5xl font-black text-white sm:text-6xl">{Number.isFinite(score) ? score : '—'}</span><span className="pb-2 text-2xl text-slate-500">/100</span></div>
+          <span className="inline-flex rounded-2xl border border-violet-400/30 bg-violet-500/15 px-6 py-2 font-bold text-violet-200">{getMoodStatus(score)}</span>
+          <p className="text-sm text-slate-300">Latest mood score returned by the dashboard API.</p>
         </div>
       </div>
     </DashboardCard>

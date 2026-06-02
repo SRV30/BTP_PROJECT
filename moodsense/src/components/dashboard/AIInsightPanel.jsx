@@ -1,7 +1,13 @@
-import { aiInsightReasons } from '../../data/dashboardData'
 import { DashboardCard } from './DashboardCard'
 
-export const AIInsightPanel = () => (
+const buildReasons = (today = {}) => [
+  `Mood score: ${today.moodScore ?? '—'}/100`,
+  `Stress score: ${today.stressScore ?? '—'}/100`,
+  `Sleep: ${today.sleepHours ?? '—'}h`,
+  `Screen time: ${today.screenTime ?? '—'}h`,
+]
+
+export const AIInsightPanel = ({ insight, today }) => (
   <DashboardCard className="relative overflow-hidden lg:col-span-6">
     <div className="absolute -right-8 bottom-4 h-44 w-44 rounded-full bg-violet-600/20 blur-3xl" />
     <div className="relative grid gap-5 sm:grid-cols-[1fr_160px] sm:items-center">
@@ -10,11 +16,11 @@ export const AIInsightPanel = () => (
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-2xl text-violet-200">🧠</span>
           <h2 className="text-lg font-bold text-white">AI Insight</h2>
         </div>
-        <p className="text-xl font-bold text-violet-300">You had a productive day.</p>
-        <p className="mt-3 max-w-sm leading-7 text-slate-300">Your mood score is 18% higher than last week.</p>
-        <p className="mt-5 text-sm text-slate-400">Reasons:</p>
+        <p className="text-xl font-bold text-violet-300">Dashboard Insight</p>
+        <p className="mt-3 max-w-sm leading-7 text-slate-300">{insight || 'No AI dashboard insight returned by the API.'}</p>
+        <p className="mt-5 text-sm text-slate-400">Signals:</p>
         <ul className="mt-3 space-y-3">
-          {aiInsightReasons.map((reason) => (
+          {buildReasons(today).map((reason) => (
             <li className="flex items-center gap-3 text-sm text-slate-200" key={reason}>
               <span className="flex h-5 w-5 items-center justify-center rounded-full border border-emerald-400 text-xs text-emerald-300">✓</span>
               {reason}
