@@ -124,6 +124,10 @@ const agentReportSchema = new mongoose.Schema(
       type: analysisDataSchema,
       required: true,
     },
+    fastApiResponse: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+    },
     source: {
       type: String,
       enum: ['FastAPI', 'MongoDB Cache'],

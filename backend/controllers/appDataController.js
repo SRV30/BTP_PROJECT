@@ -90,6 +90,17 @@ const toAgentReports = (aiData, report = {}) => {
   }
 }
 
+const normalizeRecommendationsForStorage = (recommendations = []) => recommendations.map((recommendation) => {
+  if (typeof recommendation === 'string') {
+    return { title: recommendation, description: recommendation }
+  }
+
+  return {
+    title: recommendation.title || recommendation.description || 'Wellness recommendation',
+    description: recommendation.description || recommendation.title || 'Review your MoodSense wellness recommendation.',
+  }
+})
+
 const toWeeklyMoodStatistics = (payload = {}) => ({
   weeklyTrend: payload.weeklyTrend,
   happyDays: payload.happyDays,
@@ -138,7 +149,12 @@ const saveAnalysisReport = async ({ userId, latest, reportDate, aiAnalysis }) =>
     requestPayload: aiAnalysis.payload,
     analysis: {
       ...aiAnalysis.data,
+      recommendations: normalizeRecommendationsForStorage(aiAnalysis.data.recommendations),
       cached: false,
+    },
+    fastApiResponse: {
+      success: aiAnalysis.success,
+      data: aiAnalysis.data,
     },
     source: 'FastAPI',
   }
@@ -243,9 +259,11 @@ const getAiInsights = async (req, res, next) => {
     const cachedReport = await AgentReports.findOne({ userId: req.user._id, date: reportDate }).lean()
 
     if (cachedReport) {
+      const cachedAnalysis = { ...cachedReport.analysis, cached: true }
+
       return res.status(200).json(buildInsightsResponse({
         latest,
-        aiData: cachedReport.analysis,
+        aiData: cachedAnalysis,
         payload: cachedReport.requestPayload,
         aiService: {
           success: true,
