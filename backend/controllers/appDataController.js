@@ -166,6 +166,77 @@ const saveAnalysisReport = async ({ userId, latest, reportDate, aiAnalysis }) =>
   )
 }
 
+
+const getStoredMetrics = async (userId) => DailyMetrics.find({ userId }).sort({ date: 1 }).limit(30).lean()
+
+const scoreProductivity = (metric = {}) => {
+  const stepsScore = Math.min(30, (Number(metric.steps || 0) / 8000) * 30)
+  const sleepHours = Number(metric.sleepHours || 0)
+  const sleepScore = sleepHours >= 7 && sleepHours <= 9 ? 25 : Math.max(0, 25 - Math.abs(7.5 - sleepHours) * 6)
+  const screenScore = Math.max(0, 20 - Math.max(0, Number(metric.screenTime || 0) - 4) * 4)
+  const focusMinutes = Number(metric.linkedin || 0) + Number(metric.gmail || 0) + Number(metric.unacademy || 0)
+  const focusScore = Math.min(25, (focusMinutes / 180) * 25)
+
+  return Math.round(Math.min(100, stepsScore + sleepScore + screenScore + focusScore))
+}
+
+const getBestDay = (dailyData, field, direction = 'max') => {
+  if (dailyData.length === 0) {
+    return null
+  }
+
+  return dailyData.reduce((selected, item) => {
+    if (direction === 'min') {
+      return Number(item[field] || 0) < Number(selected[field] || 0) ? item : selected
+    }
+
+    return Number(item[field] || 0) > Number(selected[field] || 0) ? item : selected
+  }, dailyData[0])
+}
+
+const stressLevelValue = (stressScore) => Math.min(5, Math.max(1, Math.ceil(Number(stressScore || 0) / 20)))
+
+const toStressHeatmap = (metrics) => metrics.slice(-7).map((metric) => {
+  const base = stressLevelValue(metric.stressScore)
+  return {
+    day: dayName(metric.date),
+    values: [-1, 0, 0, 1, 1, 0, -1].map((offset) => Math.min(5, Math.max(1, base + offset))),
+  }
+})
+
+const getProductiveApps = (metrics) => {
+  const totals = metrics.reduce(
+    (result, metric) => ({
+      LinkedIn: result.LinkedIn + Number(metric.linkedin || 0),
+      Gmail: result.Gmail + Number(metric.gmail || 0),
+      Unacademy: result.Unacademy + Number(metric.unacademy || 0),
+    }),
+    { LinkedIn: 0, Gmail: 0, Unacademy: 0 },
+  )
+
+  return Object.entries(totals)
+    .filter(([, minutes]) => minutes > 0)
+    .sort((first, second) => second[1] - first[1])
+    .map(([name]) => name)
+}
+
+const buildWeeklySummary = ({ dailyData, stats }) => {
+  if (dailyData.length === 0) {
+    return ['No analytics data is available yet.']
+  }
+
+  const first = dailyData[0]
+  const last = dailyData[dailyData.length - 1]
+  const moodDifference = Math.round(Number(last.mood || 0) - Number(first.mood || 0))
+  const stressDifference = Math.round(Number(last.stress || 0) - Number(first.stress || 0))
+
+  return [
+    `Average mood was ${stats.averageMood}/100 across ${dailyData.length} tracked days.`,
+    `Average sleep was ${stats.averageSleep}h with ${stats.averageSteps.toLocaleString()} average steps.`,
+    `Mood ${moodDifference >= 0 ? 'increased' : 'decreased'} by ${Math.abs(moodDifference)} points while stress ${stressDifference <= 0 ? 'decreased' : 'increased'} by ${Math.abs(stressDifference)} points.`,
+  ]
+}
+
 const average = (metrics, field) => Math.round(metrics.reduce((total, metric) => total + Number(metric[field] || 0), 0) / metrics.length)
 
 const toDailyData = (metrics) => metrics.slice(-7).map((metric) => ({
@@ -178,14 +249,23 @@ const toDailyData = (metrics) => metrics.slice(-7).map((metric) => ({
 }))
 
 const emotionDistribution = (metrics) => {
-  const counts = metrics.slice(-7).reduce((result, metric) => ({ ...result, [metric.moodLabel]: (result[metric.moodLabel] || 0) + 1 }), {})
-  const total = metrics.slice(-7).length || 1
-  return [
-    { name: 'Happy', value: Math.round(((counts.Happy || 0) / total) * 100), color: '#22c55e' },
-    { name: 'Neutral', value: Math.round(((counts.Neutral || 0) / total) * 100), color: '#3b82f6' },
-    { name: 'Calm', value: 10, color: '#fbbf24' },
-    { name: 'Sad', value: Math.round(((counts.Sad || 0) / total) * 100), color: '#fb7185' },
-  ]
+  const recentMetrics = metrics.slice(-7)
+  if (recentMetrics.length === 0) {
+    return []
+  }
+
+  const colors = {
+    Happy: '#22c55e',
+    Neutral: '#3b82f6',
+    Calm: '#fbbf24',
+    Sad: '#fb7185',
+  }
+  const counts = recentMetrics.reduce((result, metric) => ({ ...result, [metric.moodLabel]: (result[metric.moodLabel] || 0) + 1 }), {})
+  return Object.entries(counts).map(([name, count]) => ({
+    name,
+    value: Math.round((count / recentMetrics.length) * 100),
+    color: colors[name] || '#94a3b8',
+  }))
 }
 
 const getDashboard = async (req, res, next) => {
@@ -213,19 +293,73 @@ const getDashboard = async (req, res, next) => {
 
 const getAnalytics = async (req, res, next) => {
   try {
-    const metrics = await getMetrics(req.user._id)
-    const dailyData = toDailyData(metrics)
+    const metrics = await getStoredMetrics(req.user._id)
+    const dailyData = toDailyData(metrics).map((item, index) => ({
+      ...item,
+      productivity: scoreProductivity(metrics.slice(-7)[index]),
+    }))
+    const stats = metrics.length > 0
+      ? {
+          averageMood: average(metrics, 'moodScore'),
+          averageSleep: Number((metrics.reduce((total, metric) => total + Number(metric.sleepHours || 0), 0) / metrics.length).toFixed(1)),
+          averageSteps: average(metrics, 'steps'),
+          averageScreenTime: Number((metrics.reduce((total, metric) => total + Number(metric.screenTime || 0), 0) / metrics.length).toFixed(1)),
+          averageStress: average(metrics, 'stressScore'),
+        }
+      : {
+          averageMood: 0,
+          averageSleep: 0,
+          averageSteps: 0,
+          averageScreenTime: 0,
+          averageStress: 0,
+        }
+    const productivityScore = dailyData.length > 0 ? Math.round(dailyData.reduce((total, item) => total + item.productivity, 0) / dailyData.length) : 0
+    const mostProductiveDay = getBestDay(dailyData, 'productivity')
+
     return res.status(200).json({
       dailyData,
-      stats: {
-        averageMood: average(metrics, 'moodScore'),
-        averageSleep: Number((metrics.reduce((total, metric) => total + Number(metric.sleepHours || 0), 0) / metrics.length).toFixed(1)),
-        averageSteps: average(metrics, 'steps'),
-        averageScreenTime: Number((metrics.reduce((total, metric) => total + Number(metric.screenTime || 0), 0) / metrics.length).toFixed(1)),
-        averageStress: average(metrics, 'stressScore'),
-      },
+      stats,
       emotionDistribution: emotionDistribution(metrics),
-      summary: 'This week your mood improved while sleep remained stable and stress stayed controlled.',
+      stressHeatmap: toStressHeatmap(metrics),
+      weeklySummary: buildWeeklySummary({ dailyData, stats }),
+      productivityScore,
+      mostProductiveDay: mostProductiveDay?.day || null,
+      productiveApps: getProductiveApps(metrics),
+      summaryCards: {
+        mood: {
+          average: stats.averageMood,
+          bestDay: getBestDay(dailyData, 'mood')?.day || null,
+          bestValue: getBestDay(dailyData, 'mood')?.mood || null,
+          worstDay: getBestDay(dailyData, 'mood', 'min')?.day || null,
+          worstValue: getBestDay(dailyData, 'mood', 'min')?.mood || null,
+        },
+        sleep: {
+          average: stats.averageSleep,
+          bestDay: getBestDay(dailyData, 'sleep')?.day || null,
+          bestValue: getBestDay(dailyData, 'sleep')?.sleep || null,
+        },
+        steps: {
+          average: stats.averageSteps,
+          mostActiveDay: getBestDay(dailyData, 'steps')?.day || null,
+          mostActiveValue: getBestDay(dailyData, 'steps')?.steps || null,
+          leastActiveDay: getBestDay(dailyData, 'steps', 'min')?.day || null,
+          leastActiveValue: getBestDay(dailyData, 'steps', 'min')?.steps || null,
+        },
+        screenTime: {
+          average: stats.averageScreenTime,
+          highestUsageDay: getBestDay(dailyData, 'screenTime')?.day || null,
+          highestUsageValue: getBestDay(dailyData, 'screenTime')?.screenTime || null,
+          lowestUsageDay: getBestDay(dailyData, 'screenTime', 'min')?.day || null,
+          lowestUsageValue: getBestDay(dailyData, 'screenTime', 'min')?.screenTime || null,
+        },
+        stress: {
+          average: stats.averageStress,
+          highestStressDay: getBestDay(dailyData, 'stress')?.day || null,
+          highestStressValue: getBestDay(dailyData, 'stress')?.stress || null,
+          lowestStressDay: getBestDay(dailyData, 'stress', 'min')?.day || null,
+          lowestStressValue: getBestDay(dailyData, 'stress', 'min')?.stress || null,
+        },
+      },
     })
   } catch (error) {
     next(error)
