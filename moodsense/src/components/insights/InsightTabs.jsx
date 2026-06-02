@@ -1,4 +1,4 @@
-import { insightTabs } from '../../data/aiInsightsData'
+const insightTabs = ['Insights', 'Recommendations', 'Summary']
 
 export const InsightTabs = () => (
   <div className="grid grid-cols-3 gap-2 rounded-3xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-xl">
