@@ -7,7 +7,6 @@ import { ImproveTomorrowCard } from '../../components/predictions/ImproveTomorro
 import { TomorrowMoodCard } from '../../components/predictions/TomorrowMoodCard'
 import { TomorrowStressCard } from '../../components/predictions/TomorrowStressCard'
 import { PageState } from '../../components/ui/PageState'
-import { moodForecast, stressForecast } from '../../data/predictionsData'
 import { useApiResource } from '../../hooks/useApiResource'
 import { appApi } from '../../services/appApi'
 
@@ -24,19 +23,23 @@ const Predictions = () => {
       </header>
       <PageState error={error} isLoading={isLoading} />
 
-      <section className="grid gap-5 lg:grid-cols-2">
-        <TomorrowMoodCard />
-        <TomorrowStressCard />
-      </section>
+      {!isLoading && !error && (
+        <>
+          <section className="grid gap-5 lg:grid-cols-2">
+            <TomorrowMoodCard confidence={data?.tomorrowConfidence} mood={data?.tomorrowMood} score={data?.tomorrowMoodScore} />
+            <TomorrowStressCard score={data?.tomorrowStressScore} />
+          </section>
 
-      <section className="grid gap-5 xl:grid-cols-2">
-        <ForecastLineCard color="#a855f7" data={data?.moodForecast || moodForecast} title="Next 7 Days Mood Forecast" />
-        <ForecastLineCard color="#22d3ee" data={data?.stressForecast || stressForecast} title="Next 7 Days Stress Forecast" />
-      </section>
+          <section className="grid gap-5 xl:grid-cols-2">
+            <ForecastLineCard color="#a855f7" data={data?.moodForecast || []} title="Next 7 Days Mood Forecast" />
+            <ForecastLineCard color="#22d3ee" data={data?.stressForecast || []} title="Next 7 Days Stress Forecast" />
+          </section>
 
-      <BehavioralForecastCard />
-      <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]"><AIExplanationCard /><ConfidenceMeterCard /></section>
-      <ImproveTomorrowCard />
+          <BehavioralForecastCard items={data?.behavioralForecast || []} />
+          <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]"><AIExplanationCard explanation={data?.explanation} /><ConfidenceMeterCard levels={data?.confidenceLevels || []} /></section>
+          <ImproveTomorrowCard suggestions={data?.improvementSuggestions || []} />
+        </>
+      )}
     </div>
   )
 }

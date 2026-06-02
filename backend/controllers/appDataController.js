@@ -366,18 +366,47 @@ const getAnalytics = async (req, res, next) => {
   }
 }
 
+
+const getImprovementSuggestions = (metric = {}) => {
+  const suggestions = []
+
+  if (Number(metric.steps || 0) < 7000) suggestions.push('Increase steps')
+  if (Number(metric.instagram || 0) + Number(metric.whatsapp || 0) > 180) suggestions.push('Reduce social media')
+  if (Number(metric.sleepHours || 0) < 7) suggestions.push('Sleep early')
+  if (Number(metric.screenTime || 0) > 5) suggestions.push('Reduce screen time')
+  if (suggestions.length === 0) suggestions.push('Maintain current routine')
+
+  return suggestions
+}
+
 const getPredictions = async (req, res, next) => {
   try {
     const metrics = await getMetrics(req.user._id)
     const latest = getLatest(metrics)
-    const prediction = latest.tomorrowPrediction || { moodLabel: 'Happy', moodScore: 86, confidence: 82, stressScore: 39 }
+    const prediction = latest.tomorrowPrediction || { moodLabel: latest.moodLabel, moodScore: latest.moodScore, confidence: 70, stressScore: latest.stressScore }
+    const confidence = Number(prediction.confidence || 0)
+    const expectedSleep = Number(latest.sleepHours || 0) >= 7 ? Number(latest.sleepHours || 0) : Number(latest.sleepHours || 0) + 0.5
+    const expectedSteps = Math.round(Number(latest.steps || 0) * 1.05)
+    const expectedScreenTime = Math.max(0, Number(latest.screenTime || 0) - 0.25)
+
     return res.status(200).json({
       tomorrowMood: prediction.moodLabel,
-      tomorrowConfidence: prediction.confidence,
+      tomorrowConfidence: confidence,
       tomorrowMoodScore: prediction.moodScore,
       tomorrowStressScore: prediction.stressScore,
       moodForecast: toDailyData(metrics).map((metric, index) => ({ day: metric.day, value: Math.min(100, metric.mood + index) })),
       stressForecast: toDailyData(metrics).map((metric, index) => ({ day: metric.day, value: Math.max(0, metric.stress - index) })),
+      behavioralForecast: [
+        { label: 'Expected Sleep', value: `${expectedSleep.toFixed(1)}h`, icon: '☾', tone: 'text-cyan-300' },
+        { label: 'Expected Steps', value: expectedSteps.toLocaleString(), icon: '🚶', tone: 'text-emerald-300' },
+        { label: 'Expected Screen Time', value: `${expectedScreenTime.toFixed(1)}h`, icon: '▯', tone: 'text-violet-300' },
+      ],
+      confidenceLevels: [
+        { label: 'Model Confidence', value: confidence, color: 'bg-emerald-400' },
+        { label: 'Mood Stability', value: Math.max(0, 100 - Math.abs(Number(prediction.moodScore || 0) - Number(latest.moodScore || 0))), color: 'bg-violet-400' },
+        { label: 'Stress Stability', value: Math.max(0, 100 - Math.abs(Number(prediction.stressScore || 0) - Number(latest.stressScore || 0))), color: 'bg-cyan-400' },
+      ],
+      improvementSuggestions: getImprovementSuggestions(latest),
       explanation: 'Based on recent sleep, activity levels, and screen usage, your existing prediction remains positive.',
     })
   } catch (error) {
