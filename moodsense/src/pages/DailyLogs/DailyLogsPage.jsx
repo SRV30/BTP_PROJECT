@@ -5,8 +5,10 @@ import { Button } from '../../components/ui/Button'
 
 const SLOTS = ['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT']
 
-const DailyLogs = () => {
+const DailyLogsPage = () => {
+  const [view, setView] = useState('daily') // 'daily' | 'history'
   const [logs, setLogs] = useState([])
+  const [history, setHistory] = useState({ data: [], total: 0, pages: 0, currentPage: 1 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -30,15 +32,20 @@ const DailyLogs = () => {
   const fetchLogs = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await appApi.getLogsByDate(filterDate)
-      setLogs(data)
+      if (view === 'daily') {
+        const data = await appApi.getLogsByDate(filterDate)
+        setLogs(data)
+      } else {
+        const data = await appApi.getLogHistory(history.currentPage)
+        setHistory(data)
+      }
       setError(null)
     } catch {
-      setError('Failed to fetch logs')
+      setError('Failed to fetch data')
     } finally {
       setIsLoading(false)
     }
-  }, [filterDate])
+  }, [view, filterDate, history.currentPage])
 
   useEffect(() => {
     let isMounted = true
@@ -90,6 +97,10 @@ const DailyLogs = () => {
     }
   }
 
+  const changePage = (page) => {
+    setHistory(prev => ({ ...prev, currentPage: page }))
+  }
+
   const handleEdit = (log) => {
     setEditingLog(log)
     setFormData({
@@ -126,12 +137,20 @@ const DailyLogs = () => {
           <p className="mt-2 text-slate-400">Track your habits and routines throughout the day.</p>
         </div>
         <div className="flex items-center gap-3">
-          <input
-            className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
-            onChange={(e) => setFilterDate(e.target.value)}
-            type="date"
-            value={filterDate}
-          />
+          <div className="flex overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-1">
+            <button
+              className={`px-4 py-1.5 text-sm font-bold transition-all ${view === 'daily' ? 'rounded-lg bg-violet-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              onClick={() => setView('daily')}
+            >
+              Daily
+            </button>
+            <button
+              className={`px-4 py-1.5 text-sm font-bold transition-all ${view === 'history' ? 'rounded-lg bg-violet-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              onClick={() => setView('history')}
+            >
+              History
+            </button>
+          </div>
           <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
             + Add Log
           </Button>
@@ -140,9 +159,18 @@ const DailyLogs = () => {
 
       <PageState error={error} isLoading={isLoading} />
 
-      {!isLoading && !error && (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {SLOTS.map((slot) => {
+      {!isLoading && !error && view === 'daily' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-end">
+            <input
+              className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+              onChange={(e) => setFilterDate(e.target.value)}
+              type="date"
+              value={filterDate}
+            />
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {SLOTS.map((slot) => {
             const log = logs.find((l) => l.slot === slot)
             return (
               <div
@@ -191,8 +219,83 @@ const DailyLogs = () => {
                   </div>
                 )}
               </div>
-            )
-          })}
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {!isLoading && !error && view === 'history' && (
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/50">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="border-b border-white/10 bg-white/5 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Slot</th>
+                  <th className="px-6 py-4">Sleep</th>
+                  <th className="px-6 py-4">Steps</th>
+                  <th className="px-6 py-4">Screen</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {history.data.length > 0 ? (
+                  history.data.map((log) => (
+                    <tr className="transition hover:bg-white/5" key={log._id}>
+                      <td className="whitespace-nowrap px-6 py-4 font-medium text-white">
+                        {new Date(log.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-violet-500/10 px-2 py-1 text-[10px] font-bold text-violet-400">
+                          {log.slot}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">{log.sleep}h</td>
+                      <td className="px-6 py-4">{log.steps.toLocaleString()}</td>
+                      <td className="px-6 py-4">{log.screenTime}h</td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-3">
+                          <button className="text-slate-400 hover:text-violet-400" onClick={() => handleEdit(log)}>✎</button>
+                          <button className="text-slate-400 hover:text-rose-400" onClick={() => handleDelete(log._id)}>✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-6 py-12 text-center" colSpan="6">
+                      <p className="text-slate-500">No history found.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {history.pages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/10 px-6 py-4">
+              <p className="text-xs text-slate-500">
+                Page {history.currentPage} of {history.pages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  className="px-3 py-1 text-xs"
+                  disabled={history.currentPage === 1}
+                  onClick={() => changePage(history.currentPage - 1)}
+                >
+                  Prev
+                </Button>
+                <Button
+                  className="px-3 py-1 text-xs"
+                  disabled={history.currentPage === history.pages}
+                  onClick={() => changePage(history.currentPage + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -315,4 +418,4 @@ const DailyLogs = () => {
   )
 }
 
-export default DailyLogs
+export default DailyLogsPage
