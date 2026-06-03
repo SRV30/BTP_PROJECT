@@ -1,32 +1,63 @@
-# MoodSense AI - Implementation Report
+# MoodSense AI: Implementation Report
 
 ## Current Architecture
-MoodSense AI is a microservices-inspired wellness platform comprising three primary layers:
-*   **Frontend (React 19 + Vite 8 + Tailwind 4)**: A high-performance, dark-themed Single Page Application (SPA). It uses **Recharts** for visualizing wellness trends and **Context API** for authentication state. Communication is via `axios` to the Node.js backend.
-*   **Backend (Node.js + Express + MongoDB)**: The central business logic hub. It manages user authentication (JWT), data persistence (Mongoose), and rule-based scoring engines for Mood, Stress, and Depression Risk. It orchestrates requests to the AI service and manages a MongoDB-based persistence cache for AI reports.
-*   **AI Service (FastAPI + CrewAI + Groq)**: A Python-based intelligence layer. It uses **CrewAI** to orchestrate five specialized agents (Behavior, Mood & Stress, Depression, Prediction, and Wellness Coach) powered by **Llama-3.3-70b-versatile** via Groq for explaining user metrics.
+
+### 1. Frontend (React 19 + Tailwind 4)
+*   **Framework:** Built with React 19 and Vite for high performance.
+*   **Styling:** Utilizes Tailwind CSS 4 with a "neon-noir" aesthetic (slate-950 backgrounds, emerald/cyan/violet accents).
+*   **State Management:** Uses a custom `AuthProvider` and `useApiResource` hook for data fetching and caching.
+*   **Routing:** React Router 7 manages public (Splash, Auth) and protected (Dashboard, Logs, Analytics, Insights) routes.
+*   **Visualizations:** Recharts is used for mood trends, stress heatmaps, and productivity charts.
+
+### 2. Backend (Node.js + Express)
+*   **Architecture:** Follows a Controller-Service-Model pattern.
+*   **Data Models:**
+    *   `DailyLog`: Granular 8-hour time slots (Morning, Afternoon, Evening).
+    *   `DailyMetrics`: Aggregated daily totals with mood/stress scores.
+    *   `AgentReports`: Stores structured AI analysis results.
+*   **Engines:**
+    *   `MoodEngine`: Calculates mood scores based on sleep, steps, and app usage.
+    *   `StressEngine`: Weighs environmental factors (screen time, social usage) against wellness activities.
+    *   `DepressionRiskService`: Analyzes 7-day trends to identify risk levels.
+
+### 3. AI Service (FastAPI + CrewAI)
+*   **Core:** A Python FastAPI service orchestrating 5 CrewAI agents.
+*   **Agents:**
+    1.  **Behavior Agent:** Analyzes activity patterns.
+    2.  **Mood & Stress Agent:** Evaluates emotional state.
+    3.  **Depression Risk Agent:** Performs secondary risk analysis (non-medical).
+    4.  **Prediction Agent:** Forecasts tomorrow's state.
+    5.  **Wellness Coach Agent:** Generates 3 actionable recommendations.
+*   **LLM:** Uses Groq (via CrewAI) for fast inference of structured JSON reports.
+
+---
 
 ## Existing Features
-*   **Secure Authentication**: Full JWT-based flow including signup, login, and tokenized password reset (token generated and stored as SHA-256).
-*   **Automated Wellness Engines**: Rule-based heuristics that calculate scores for Mood, Stress, and Depression Risk automatically when daily metrics are saved.
-*   **Multi-Agent Contextual Insights**: The AI service provides more than just summaries; it explains the "why" behind scores and gives exactly three personalized wellness recommendations.
-*   **Interactive Analytics Dashboard**: Visualization of mood trends, stress heatmaps, and productivity scores (calculated from steps, sleep, and focused app usage).
-*   **Bulk Data Ingestion**: An Excel importer that creates users and metrics from spreadsheets, facilitating development and testing.
+*   **3-Slot Logging:** Users log sleep, steps, and screen time for Morning (0-8h), Afternoon (8-16h), and Evening (16-24h).
+*   **Real-time Dashboard:** Dynamic override logic that displays "Live" data from logs before they are aggregated into the daily summary.
+*   **Automated Aggregation:** Backend triggers metric refreshes on every log update, ensuring scores are always current.
+*   **Trend Analytics:** Weekly mood trends, stress heatmaps, and productivity scoring.
+*   **AI Insights:** Deep-dive analysis of behavior patterns with personalized wellness coaching.
+
+---
 
 ## Missing Features
-*   **Email Integration**: The forgot-password flow currently returns the reset token in the API response rather than sending an actual email.
-*   **Real-time Alerts**: No mechanism for proactive notifications if a user's depression risk or stress score reaches a critical threshold.
-*   **Goal Management UI**: While backend models exist for `Goal`, `Reflection`, and `DailyLog`, the current frontend focus is primarily on analytics and insights.
-*   **Shared AI Cache**: The FastAPI service uses an in-memory lock-based cache, which is not shared across multiple instances of the service.
+*   **Goal Integration:** While the `Goal` model exists, a full-featured "Goal Tracking" UI page is not yet visible in the main navigation.
+*   **Reflection Journaling:** Limited frontend support for the `Reflection` model (journaling).
+*   **Notification System:** Lack of proactive alerts for high-stress detected or missed logs.
+*   **Export Functionality:** Users cannot currently export their wellness data (PDF/CSV).
+
+---
 
 ## Technical Debt
-*   **Latency in AI Pipeline**: The `MoodSenseCrew` runs sequentially. Users wait for all five agents to finish before receiving insights, leading to typical wait times of several seconds.
-*   **Logic Redundancy**: Rules for what constitutes "High Stress" or "Low Mood" are partially duplicated in Node.js services (`moodEngineService.js`) and in the system prompts for the AI agents.
-*   **Monolithic Controller**: `appDataController.js` handles massive amounts of data transformation and mapping between database models and frontend expectations.
-*   **Hardcoded Thresholds**: Scoring parameters (e.g., "7 hours of sleep is healthy") are hardcoded constants rather than configurable parameters.
+*   **Date Synchronization:** The frontend uses `toISOString().split('T')[0]` for "Today" detection, which can lead to timezone mismatches.
+*   **Error Boundaries:** The AI service integration is "fail-soft", but the UI could benefit from clearer error states.
+*   **Controller Redundancy:** Some backend controllers contain unreachable code after `res.json()` calls.
+
+---
 
 ## Recommended Next Steps
-*   **Performance Optimization**: Refactor `MoodSenseCrew` to use parallel task execution for independent agents (Behavior, Prediction) to reduce user wait time.
-*   **Service Integration**: Implement a mailer service (e.g., Nodemailer with AWS SES) to enable real password resets and wellness alerts.
-*   **Scalability**: Migrate the FastAPI in-memory cache to Redis to support horizontally scaled AI workers.
-*   **UI Expansion**: Build out the Goal Tracking and Daily Reflection pages to utilize the existing backend models.
+1.  **Standardize Date Logic:** Implement a utility to handle local-to-UTC transitions consistently.
+2.  **Finalize AI Service Configuration:** Ensure the `AI_SERVICE_URL` is robustly handled.
+3.  **Goal & Reflection UI:** Build out the dedicated pages for Goal setting and Reflection history.
+4.  **Metric Accuracy:** Verify the summation logic for `screenTime` across slots.

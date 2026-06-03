@@ -3,9 +3,10 @@ import { DashboardCard } from './DashboardCard'
 
 export const OverviewMetricCard = ({ color, data = [], icon, status, suffix, title, value }) => {
   const sparklineData = data.map((point, index) => ({ index, point }))
+  const isAggregated = status === 'Daily Summary'
 
   return (
-    <DashboardCard className="p-4">
+    <DashboardCard className={`p-4 ${!isAggregated ? 'ring-1 ring-white/5' : ''}`}>
       <div className="mb-4 flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.06] text-xl" style={{ color }}>{icon}</span>
         <p className="text-sm font-semibold text-slate-300">{title}</p>

@@ -36,7 +36,7 @@ const buildOverviewCards = ({ today, weeklyMoodTrend = [] }) => [
   {
     title: 'Sleep',
     value: formatHours(today?.sleepHours),
-    status: today?.sleepHours ? 'Tracked today' : 'Unavailable',
+    status: today?.isLive ? 'Real-time' : 'Daily Summary',
     icon: '☾',
     color: '#38bdf8',
     data: toSparkline(weeklyMoodTrend, 'sleep'),
@@ -44,7 +44,7 @@ const buildOverviewCards = ({ today, weeklyMoodTrend = [] }) => [
   {
     title: 'Steps',
     value: formatNumber(today?.steps),
-    status: 'Today',
+    status: today?.isLive ? 'Real-time' : 'Daily Summary',
     icon: '🚶',
     color: '#22d3ee',
     data: toSparkline(weeklyMoodTrend, 'steps'),
@@ -52,7 +52,7 @@ const buildOverviewCards = ({ today, weeklyMoodTrend = [] }) => [
   {
     title: 'Screen Time',
     value: formatHours(today?.screenTime),
-    status: 'Today',
+    status: today?.isLive ? 'Real-time' : 'Daily Summary',
     icon: '▯',
     color: '#c084fc',
     data: toSparkline(weeklyMoodTrend, 'screenTime'),
@@ -60,9 +60,34 @@ const buildOverviewCards = ({ today, weeklyMoodTrend = [] }) => [
 ]
 
 const Dashboard = () => {
-  const loadDashboard = useCallback(() => appApi.dashboard(), [])
-  const { data, error, isLoading } = useApiResource(loadDashboard)
-  const today = data?.today
+  const loadDashboardData = useCallback(async () => {
+    const [dash, latestLog] = await Promise.all([
+      appApi.dashboard(),
+      appApi.getLatestLog().catch(() => null),
+    ])
+    return { ...dash, latestLog }
+  }, [])
+
+  const { data, error, isLoading } = useApiResource(loadDashboardData)
+
+  const getMergedToday = () => {
+    if (!data?.today) return null
+    const { today, latestLog } = data
+
+    // Fallback strategy: use DailyLog if it's from today, otherwise fallback to aggregated DailyMetrics
+    const isLogFromToday = latestLog &&
+      new Date(latestLog.date).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]
+
+    return {
+      ...today,
+      sleepHours: isLogFromToday ? latestLog.sleep : today.sleepHours,
+      steps: isLogFromToday ? latestLog.steps : today.steps,
+      screenTime: isLogFromToday ? latestLog.screenTime : today.screenTime,
+      isLive: isLogFromToday
+    }
+  }
+
+  const today = getMergedToday()
   const weeklyMoodTrend = data?.weeklyMoodTrend || []
   const cards = buildOverviewCards({ today, weeklyMoodTrend })
   const predictionTrend = weeklyMoodTrend.map((item) => ({ day: item.day, value: item.mood }))
@@ -82,7 +107,10 @@ const Dashboard = () => {
           <section>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-black text-white">Overview</h2>
-              <span className="text-sm font-semibold text-slate-400">Live API</span>
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-400">
+                {today?.isLive && <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />}
+                {today?.isLive ? 'Real-time Metrics' : 'Daily Summary'}
+              </span>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {cards.map((card) => <OverviewMetricCard key={card.title} {...card} />)}

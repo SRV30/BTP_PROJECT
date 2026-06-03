@@ -12,6 +12,7 @@ export const appApi = {
   // Daily Logs
   getLogs: async () => (await apiClient.get('/logs')).data,
   getLogsByDate: async (date) => (await apiClient.get(`/logs/date/${date}`)).data,
+  getLatestLog: async () => (await apiClient.get('/logs/latest')).data,
   createLog: async (payload) => (await apiClient.post('/logs', payload)).data,
   updateLog: async (id, payload) => (await apiClient.put(`/logs/${id}`, payload)).data,
   deleteLog: async (id) => (await apiClient.delete(`/logs/${id}`)).data,
