@@ -21,7 +21,7 @@ const dailyLogSchema = new mongoose.Schema(
 
     slot: {
       type: String,
-      enum: ["MORNING", "AFTERNOON", "EVENING", "NIGHT"],
+      enum: ["MORNING", "AFTERNOON", "EVENING"],
       required: true,
     },
 

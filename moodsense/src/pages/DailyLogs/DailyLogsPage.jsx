@@ -3,7 +3,7 @@ import { appApi } from '../../services/appApi'
 import { PageState } from '../../components/ui/PageState'
 import { Button } from '../../components/ui/Button'
 
-const SLOTS = ['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT']
+const SLOTS = ['MORNING', 'AFTERNOON', 'EVENING']
 
 const DailyLogsPage = () => {
   const [view, setView] = useState('daily') // 'daily' | 'history'

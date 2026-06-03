@@ -1,7 +1,7 @@
 # MoodSense AI - DailyLog Implementation Report
 
 ## Current Architecture
-The `DailyLog` module is a core component of the MoodSense backend, designed to capture granular user metrics across four time-slots: `MORNING`, `AFTERNOON`, `EVENING`, and `NIGHT`.
+The `DailyLog` module is a core component of the MoodSense backend, designed to capture granular user metrics across three 8-hour time-slots: `MORNING` (0-8), `AFTERNOON` (8-16), and `EVENING` (16-24).
 
 *   **Model**: `DailyLog.js` (Mongoose)
 *   **Controller**: `dailyLogController.js`
