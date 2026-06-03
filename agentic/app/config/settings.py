@@ -1,3 +1,7 @@
+import os
+os.environ["LITELLM_LOCAL_CACHE"] = "false"
+os.environ["LITELLM_CACHE"] = "false"
+
 from functools import lru_cache
 from typing import Literal
 
@@ -6,8 +10,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables and .env."""
-
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
     model_name: str = Field(default="llama-3.3-70b-versatile", alias="MODEL_NAME")
     app_env: Literal["development", "staging", "production", "test"] = Field(

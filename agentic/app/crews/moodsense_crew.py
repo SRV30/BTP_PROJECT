@@ -131,12 +131,23 @@ class MoodSenseCrew:
     @staticmethod
     def _parse_task_output(output: Any, task_name: str) -> dict[str, Any]:
         raw_output = getattr(output, "raw", None) or str(output)
+
         json_match = re.search(r"\{.*\}", raw_output, re.DOTALL)
+
         if not json_match:
             raise ValueError(f"{task_name} did not return JSON")
-        parsed = json.loads(json_match.group(0))
+
+        json_str = json_match.group(0).strip()
+
+        # Fix malformed CrewAI outputs like {{...}}
+        while json_str.startswith("{{") and json_str.endswith("}}"):
+            json_str = json_str[1:-1].strip()
+
+        parsed = json.loads(json_str)
+
         if not isinstance(parsed, dict):
             raise ValueError(f"{task_name} did not return a JSON object")
+
         return parsed
 
     @staticmethod
