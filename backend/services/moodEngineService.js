@@ -1,5 +1,6 @@
 const DailyMetrics = require('../models/DailyMetrics')
 const { calculateStress } = require('./stressEngineService')
+const { calculatePrediction } = require('./predictionEngineService')
 
 const APP_USAGE_FIELDS = ['instagram', 'whatsapp', 'linkedin', 'gmail', 'udemy']
 
@@ -105,6 +106,29 @@ const saveMoodMetrics = async ({ userId, date = new Date(), sleep, sleepHours, s
     appUsage: normalizedAppUsage,
   })
 
+  // Fetch recent metrics for prediction
+  const recentMetrics = await DailyMetrics.find({ userId })
+    .sort({ date: -1 })
+    .limit(30)
+    .lean()
+
+  // Prepare current day's metric (it might not be in DB yet or needs updating)
+  const currentMetric = {
+    date: metricDate,
+    moodScore: mood.moodScore,
+    stressScore: mood.stressScore,
+    sleepHours: normalizedSleep,
+    steps: normalizedSteps,
+    screenTime: normalizedScreenTime,
+  }
+
+  // Merge current with recent, ensuring we don't duplicate today's date if it's already in recent
+  const dateStr = metricDate.toISOString().split('T')[0]
+  const otherMetrics = recentMetrics.filter(m => m.date.toISOString().split('T')[0] !== dateStr)
+  const allMetrics = [currentMetric, ...otherMetrics]
+
+  const prediction = calculatePrediction(allMetrics)
+
   const payload = {
     userId,
     date: metricDate,
@@ -121,10 +145,10 @@ const saveMoodMetrics = async ({ userId, date = new Date(), sleep, sleepHours, s
       sleep: normalizedSleep,
     }),
     tomorrowPrediction: {
-      moodLabel: getMoodLabel(clamp(mood.moodScore + 2, 0, 100)),
-      moodScore: clamp(mood.moodScore + 2, 0, 100),
-      confidence: 82,
-      stressScore: clamp(mood.stressScore - 3, 0, 100),
+      moodLabel: prediction.moodLabel,
+      moodScore: prediction.moodScore,
+      confidence: prediction.confidence,
+      stressScore: prediction.stressScore,
     },
   }
 

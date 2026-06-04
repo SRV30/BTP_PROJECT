@@ -3,5 +3,3 @@ backend/node_modules
 agentic/.env
 agentic/.venv
 agentic/test_groq.py
-**/__pycache__/
-*.pyc
