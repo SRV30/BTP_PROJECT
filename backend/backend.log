@@ -1,0 +1,7 @@
+
+> moodsense-backend@1.0.0 start
+> node server.js
+
+MONGO_URI is not set. Skipping MongoDB connection.
+MoodSense API listening on port 5000
+Terminated
