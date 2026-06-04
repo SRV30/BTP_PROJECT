@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '../components/layout/AppShell'
 import AIInsights from '../pages/AIInsights/AIInsights'
+import AgentDashboard from '../pages/AgentDashboard/AgentDashboard'
 import Analytics from '../pages/Analytics/Analytics'
 import DailyLogsPage from '../pages/DailyLogs/DailyLogsPage'
 import Dashboard from '../pages/Dashboard/Dashboard'
@@ -25,6 +26,7 @@ export const AppRoutes = () => (
       <Route element={<AppShell />}>
         <Route element={<Navigate replace to="/dashboard" />} path="/app" />
         <Route element={<Dashboard />} path="/dashboard" />
+        <Route element={<AgentDashboard />} path="/agent-dashboard" />
         <Route element={<DailyLogsPage />} path="/logs" />
         <Route element={<Analytics />} path="/analytics" />
         <Route element={<AIInsights />} path="/insights" />
