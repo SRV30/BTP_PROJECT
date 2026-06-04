@@ -77,7 +77,7 @@ const requestPayloadSchema = new mongoose.Schema(
     whatsappUsage: Number,
     linkedinUsage: Number,
     gmailUsage: Number,
-    unacademyUsage: Number,
+    udemyUsage: Number,
     moodScore: Number,
     moodLabel: String,
     stressScore: Number,

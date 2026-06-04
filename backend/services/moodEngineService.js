@@ -1,7 +1,7 @@
 const DailyMetrics = require('../models/DailyMetrics')
 const { calculateStress } = require('./stressEngineService')
 
-const APP_USAGE_FIELDS = ['instagram', 'whatsapp', 'linkedin', 'gmail', 'unacademy']
+const APP_USAGE_FIELDS = ['instagram', 'whatsapp', 'linkedin', 'gmail', 'udemy']
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
 

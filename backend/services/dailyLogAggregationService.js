@@ -1,12 +1,8 @@
 const DailyLog = require("../models/DailyLog");
 const DailyMetrics = require("../models/DailyMetrics");
 
-const average = (values) => {
-  if (!values.length) return 0;
-
-  return (
-    values.reduce((sum, value) => sum + Number(value || 0), 0) / values.length
-  );
+const sum = (values) => {
+  return values.reduce((total, value) => total + Number(value || 0), 0);
 };
 
 const aggregateDailyLogs = async ({ userId, date }) => {
@@ -32,21 +28,21 @@ const aggregateDailyLogs = async ({ userId, date }) => {
     userId,
     date: startDate,
 
-    sleepHours: average(logs.map((log) => log.sleep)),
+    sleepHours: sum(logs.map((log) => log.sleep)),
 
-    steps: Math.round(average(logs.map((log) => log.steps))),
+    steps: sum(logs.map((log) => log.steps)),
 
-    screenTime: average(logs.map((log) => log.screenTime)),
+    screenTime: sum(logs.map((log) => log.screenTime)),
 
-    instagram: average(logs.map((log) => log.instagramUsage)),
+    instagram: sum(logs.map((log) => log.instagramUsage)),
 
-    whatsapp: average(logs.map((log) => log.whatsappUsage)),
+    whatsapp: sum(logs.map((log) => log.whatsappUsage)),
 
-    linkedin: average(logs.map((log) => log.linkedinUsage)),
+    linkedin: sum(logs.map((log) => log.linkedinUsage)),
 
-    gmail: average(logs.map((log) => log.gmailUsage)),
+    gmail: sum(logs.map((log) => log.gmailUsage)),
 
-    unacademy: average(logs.map((log) => log.unacademyUsage)),
+    udemy: sum(logs.map((log) => log.udemyUsage)),
   };
 
   return payload;

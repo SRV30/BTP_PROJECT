@@ -22,12 +22,12 @@ const createLog = async (req, res, next) => {
       userId: req.user._id,
     });
 
+    await refreshDailyMetrics(req.user._id, log.date);
+
     return res.status(201).json({
       message: "Daily log created successfully",
       log,
     });
-
-    await refreshDailyMetrics(req.user._id, log.date);
   } catch (error) {
     return next(error);
   }
@@ -104,12 +104,12 @@ const updateLog = async (req, res, next) => {
       });
     }
 
+    await refreshDailyMetrics(req.user._id, log.date);
+
     return res.status(200).json({
       message: "Log updated successfully",
       log,
     });
-
-    await refreshDailyMetrics(req.user._id, log.date);
   } catch (error) {
     return next(error);
   }
@@ -128,11 +128,11 @@ const deleteLog = async (req, res, next) => {
       });
     }
 
+    await refreshDailyMetrics(req.user._id, log.date);
+
     return res.status(200).json({
       message: "Log deleted successfully",
     });
-
-    await refreshDailyMetrics(req.user._id, log.date);
   } catch (error) {
     return next(error);
   }
@@ -164,7 +164,7 @@ const refreshDailyMetrics = async (userId, date) => {
 
       gmail: aggregated.gmail,
 
-      unacademy: aggregated.unacademy,
+      udemy: aggregated.udemy,
     },
   });
 };
