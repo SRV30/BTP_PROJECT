@@ -14,6 +14,7 @@ Focus on sleep ({averageSleep}h), steps ({averageSteps}), screen time ({averageS
 Instagram ({instagramUsage} min), WhatsApp ({whatsappUsage} min), LinkedIn ({linkedinUsage} min),
 Gmail ({gmailUsage} min), Udemy ({udemyUsage} min), weekly trend ({weeklyTrend}),
 and weekly mood scores {weeklyMoodScores}.
+Consider the long-term wellness patterns: Sleep ({sleepPattern}), Activity ({activityPattern}), and Screen Time ({screenTimePattern}).
 Identify positive and negative behavioral patterns only.
 Do not predict mood. Do not calculate stress.
 Return only JSON: {{"behaviorSummary":"..."}}

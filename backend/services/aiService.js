@@ -1,6 +1,7 @@
 const axios = require('axios')
 const { env } = require('../utils/env')
 const { getCurrentTimeSlot } = require('../utils/timeSlot')
+const { calculateWellnessPatterns } = require('./userWellnessProfileService')
 
 const MIN_WEEKLY_DAYS = 7
 const MOOD_LABELS = new Set(['Happy', 'Neutral', 'Sad'])
@@ -133,6 +134,12 @@ const buildFastApiPayload = ({ metrics, user, now = new Date() }) => {
   const prediction = latest.tomorrowPrediction || {}
   const currentMoodLabel = normalizeMoodLabel(latest.moodLabel, latest.moodScore)
 
+  const patterns = calculateWellnessPatterns(sortedMetrics) || {
+    sleepPattern: 'Unknown',
+    activityPattern: 'Unknown',
+    screenTimePattern: 'Unknown',
+  }
+
   return {
     userId: String(user?._id || user?.id || latest.userId || ''),
     userName: user?.name || 'MoodSense User',
@@ -158,6 +165,9 @@ const buildFastApiPayload = ({ metrics, user, now = new Date() }) => {
     neutralDays: weeklyStats.neutralDays,
     sadDays: weeklyStats.sadDays,
     weeklyMoodScores: weeklyStats.weeklyMoodScores,
+    sleepPattern: patterns.sleepPattern,
+    activityPattern: patterns.activityPattern,
+    screenTimePattern: patterns.screenTimePattern,
   }
 }
 
