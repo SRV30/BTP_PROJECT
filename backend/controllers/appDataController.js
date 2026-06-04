@@ -5,13 +5,13 @@ const { analyzeDailyMetrics, buildFastApiPayload } = require('../services/aiServ
 const dayName = (date) => new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date(date))
 
 const defaultMetrics = [
-  { date: '2026-05-24', sleepHours: 7.2, steps: 5100, screenTime: 4.4, moodScore: 72, moodLabel: 'Happy', stressScore: 45, instagram: 160, whatsapp: 45, linkedin: 35, gmail: 20, unacademy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 75, confidence: 80, stressScore: 42 } },
-  { date: '2026-05-25', sleepHours: 7.0, steps: 5400, screenTime: 4.2, moodScore: 75, moodLabel: 'Happy', stressScore: 43, instagram: 155, whatsapp: 40, linkedin: 45, gmail: 25, unacademy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 76, confidence: 81, stressScore: 41 } },
-  { date: '2026-05-26', sleepHours: 6.5, steps: 4100, screenTime: 5.1, moodScore: 68, moodLabel: 'Neutral', stressScore: 51, instagram: 190, whatsapp: 55, linkedin: 25, gmail: 20, unacademy: 0, depressionRisk: 'Moderate', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 72, confidence: 76, stressScore: 47 } },
-  { date: '2026-05-27', sleepHours: 7.4, steps: 6000, screenTime: 4.1, moodScore: 79, moodLabel: 'Happy', stressScore: 40, instagram: 145, whatsapp: 42, linkedin: 50, gmail: 22, unacademy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 80, confidence: 83, stressScore: 39 } },
-  { date: '2026-05-28', sleepHours: 7.6, steps: 6800, screenTime: 3.9, moodScore: 82, moodLabel: 'Happy', stressScore: 38, instagram: 130, whatsapp: 35, linkedin: 55, gmail: 28, unacademy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 83, confidence: 84, stressScore: 36 } },
-  { date: '2026-05-29', sleepHours: 7.1, steps: 5900, screenTime: 4.3, moodScore: 80, moodLabel: 'Happy', stressScore: 42, instagram: 150, whatsapp: 44, linkedin: 40, gmail: 20, unacademy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 82, confidence: 82, stressScore: 39 } },
-  { date: '2026-05-30', sleepHours: 7.1, steps: 4850, screenTime: 4.5, moodScore: 84, moodLabel: 'Happy', stressScore: 42, instagram: 180, whatsapp: 45, linkedin: 40, gmail: 20, unacademy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 86, confidence: 82, stressScore: 39 } },
+  { date: '2026-05-24', sleepHours: 7.2, steps: 5100, screenTime: 4.4, moodScore: 72, moodLabel: 'Happy', stressScore: 45, instagram: 160, whatsapp: 45, linkedin: 35, gmail: 20, udemy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 75, confidence: 80, stressScore: 42 } },
+  { date: '2026-05-25', sleepHours: 7.0, steps: 5400, screenTime: 4.2, moodScore: 75, moodLabel: 'Happy', stressScore: 43, instagram: 155, whatsapp: 40, linkedin: 45, gmail: 25, udemy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 76, confidence: 81, stressScore: 41 } },
+  { date: '2026-05-26', sleepHours: 6.5, steps: 4100, screenTime: 5.1, moodScore: 68, moodLabel: 'Neutral', stressScore: 51, instagram: 190, whatsapp: 55, linkedin: 25, gmail: 20, udemy: 0, depressionRisk: 'Moderate', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 72, confidence: 76, stressScore: 47 } },
+  { date: '2026-05-27', sleepHours: 7.4, steps: 6000, screenTime: 4.1, moodScore: 79, moodLabel: 'Happy', stressScore: 40, instagram: 145, whatsapp: 42, linkedin: 50, gmail: 22, udemy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 80, confidence: 83, stressScore: 39 } },
+  { date: '2026-05-28', sleepHours: 7.6, steps: 6800, screenTime: 3.9, moodScore: 82, moodLabel: 'Happy', stressScore: 38, instagram: 130, whatsapp: 35, linkedin: 55, gmail: 28, udemy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 83, confidence: 84, stressScore: 36 } },
+  { date: '2026-05-29', sleepHours: 7.1, steps: 5900, screenTime: 4.3, moodScore: 80, moodLabel: 'Happy', stressScore: 42, instagram: 150, whatsapp: 44, linkedin: 40, gmail: 20, udemy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 82, confidence: 82, stressScore: 39 } },
+  { date: '2026-05-30', sleepHours: 7.1, steps: 4850, screenTime: 4.5, moodScore: 84, moodLabel: 'Happy', stressScore: 42, instagram: 180, whatsapp: 45, linkedin: 40, gmail: 20, udemy: 0, depressionRisk: 'Low', tomorrowPrediction: { moodLabel: 'Happy', moodScore: 86, confidence: 82, stressScore: 39 } },
 ]
 
 const getMetrics = async (userId) => {
@@ -174,7 +174,7 @@ const scoreProductivity = (metric = {}) => {
   const sleepHours = Number(metric.sleepHours || 0)
   const sleepScore = sleepHours >= 7 && sleepHours <= 9 ? 25 : Math.max(0, 25 - Math.abs(7.5 - sleepHours) * 6)
   const screenScore = Math.max(0, 20 - Math.max(0, Number(metric.screenTime || 0) - 4) * 4)
-  const focusMinutes = Number(metric.linkedin || 0) + Number(metric.gmail || 0) + Number(metric.unacademy || 0)
+  const focusMinutes = Number(metric.linkedin || 0) + Number(metric.gmail || 0) + Number(metric.udemy || 0)
   const focusScore = Math.min(25, (focusMinutes / 180) * 25)
 
   return Math.round(Math.min(100, stepsScore + sleepScore + screenScore + focusScore))
@@ -209,9 +209,9 @@ const getProductiveApps = (metrics) => {
     (result, metric) => ({
       LinkedIn: result.LinkedIn + Number(metric.linkedin || 0),
       Gmail: result.Gmail + Number(metric.gmail || 0),
-      Unacademy: result.Unacademy + Number(metric.unacademy || 0),
+      Udemy: result.Udemy + Number(metric.udemy || 0),
     }),
-    { LinkedIn: 0, Gmail: 0, Unacademy: 0 },
+    { LinkedIn: 0, Gmail: 0, Udemy: 0 },
   )
 
   return Object.entries(totals)

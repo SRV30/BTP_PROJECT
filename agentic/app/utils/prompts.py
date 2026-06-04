@@ -12,7 +12,7 @@ BEHAVIOR_TASK_PROMPT = """
 Analyze behavioral metrics for {userName} on {currentDate} ({currentTimeSlot}).
 Focus on sleep ({averageSleep}h), steps ({averageSteps}), screen time ({averageScreenTime}h),
 Instagram ({instagramUsage} min), WhatsApp ({whatsappUsage} min), LinkedIn ({linkedinUsage} min),
-Gmail ({gmailUsage} min), Unacademy ({unacademyUsage} min), weekly trend ({weeklyTrend}),
+Gmail ({gmailUsage} min), Udemy ({udemyUsage} min), weekly trend ({weeklyTrend}),
 and weekly mood scores {weeklyMoodScores}.
 Identify positive and negative behavioral patterns only.
 Do not predict mood. Do not calculate stress.

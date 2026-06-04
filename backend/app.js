@@ -34,15 +34,18 @@ app.get("/", (_req, res) => {
 
 app.use("/health", healthRoutes);
 app.use("/api/health", healthRoutes);
+
+// Auth routes must be mounted before catch-all protected routes
+app.use("/api/auth", authRoutes);
+app.use("/", authRoutes);
+
 app.use("/api", dailyLogRoutes);
 app.use("/", dailyLogRoutes);
 app.use("/api", depressionRiskRoutes);
 app.use("/api", moodEngineRoutes);
 app.use("/api", stressEngineRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api", appDataRoutes);
 app.use("/api", profileRoutes);
-app.use("/", authRoutes);
 app.use("/", depressionRiskRoutes);
 app.use("/", moodEngineRoutes);
 app.use("/", stressEngineRoutes);

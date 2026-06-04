@@ -42,7 +42,7 @@ const aggregateDailyLogs = async ({ userId, date }) => {
 
     gmail: sum(logs.map((log) => log.gmailUsage)),
 
-    unacademy: sum(logs.map((log) => log.unacademyUsage)),
+    udemy: sum(logs.map((log) => log.udemyUsage)),
   };
 
   return payload;

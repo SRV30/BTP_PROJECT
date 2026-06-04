@@ -49,7 +49,7 @@ class AnalysisRequest(BaseModel):
     whatsappUsage: int = Field(ge=0, le=1440)
     linkedinUsage: int = Field(ge=0, le=1440)
     gmailUsage: int = Field(ge=0, le=1440)
-    unacademyUsage: int = Field(ge=0, le=1440)
+    udemyUsage: int = Field(ge=0, le=1440)
     moodScore: int = Field(ge=0, le=100)
     moodLabel: MoodLabel
     stressScore: int = Field(ge=0, le=100)

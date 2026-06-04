@@ -81,7 +81,7 @@ const dailyMetricsSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
-    unacademy: {
+    udemy: {
       type: Number,
       min: 0,
       default: 0,

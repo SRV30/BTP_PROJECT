@@ -25,7 +25,7 @@ const DailyLogsPage = () => {
     whatsappUsage: 0,
     linkedinUsage: 0,
     gmailUsage: 0,
-    unacademyUsage: 0,
+    udemyUsage: 0,
     notes: '',
   })
 
@@ -75,7 +75,7 @@ const DailyLogsPage = () => {
       whatsappUsage: 0,
       linkedinUsage: 0,
       gmailUsage: 0,
-      unacademyUsage: 0,
+      udemyUsage: 0,
       notes: '',
     })
     setEditingLog(null)
@@ -113,7 +113,7 @@ const DailyLogsPage = () => {
       whatsappUsage: log.whatsappUsage,
       linkedinUsage: log.linkedinUsage,
       gmailUsage: log.gmailUsage,
-      unacademyUsage: log.unacademyUsage,
+      udemyUsage: log.udemyUsage,
       notes: log.notes || '',
     })
     setIsModalOpen(true)
@@ -199,7 +199,7 @@ const DailyLogsPage = () => {
                       <p>WA: {log.whatsappUsage}m</p>
                       <p>LI: {log.linkedinUsage}m</p>
                       <p>GM: {log.gmailUsage}m</p>
-                      <p>UN: {log.unacademyUsage}m</p>
+                      <p>UD: {log.udemyUsage}m</p>
                     </div>
                     {log.notes && (
                       <p className="mt-3 border-t border-white/5 pt-2 italic text-slate-400 line-clamp-2">
@@ -375,7 +375,7 @@ const DailyLogsPage = () => {
                     { label: 'WA', name: 'whatsappUsage' },
                     { label: 'LI', name: 'linkedinUsage' },
                     { label: 'GM', name: 'gmailUsage' },
-                    { label: 'UN', name: 'unacademyUsage' },
+                    { label: 'UD', name: 'udemyUsage' },
                   ].map((field) => (
                     <div className="space-y-1" key={field.name}>
                       <label className="text-[10px] font-bold text-slate-500">{field.label}</label>

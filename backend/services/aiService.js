@@ -145,7 +145,7 @@ const buildFastApiPayload = ({ metrics, user, now = new Date() }) => {
     whatsappUsage: Math.round(clamp(toNumber(latest.whatsapp), 0, 1440)),
     linkedinUsage: Math.round(clamp(toNumber(latest.linkedin), 0, 1440)),
     gmailUsage: Math.round(clamp(toNumber(latest.gmail), 0, 1440)),
-    unacademyUsage: Math.round(clamp(toNumber(latest.unacademy), 0, 1440)),
+    udemyUsage: Math.round(clamp(toNumber(latest.udemy), 0, 1440)),
     moodScore: Math.round(clamp(toNumber(latest.moodScore), 0, 100)),
     moodLabel: currentMoodLabel,
     stressScore: Math.round(clamp(toNumber(latest.stressScore), 0, 100)),

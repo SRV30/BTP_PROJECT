@@ -164,7 +164,7 @@ const refreshDailyMetrics = async (userId, date) => {
 
       gmail: aggregated.gmail,
 
-      unacademy: aggregated.unacademy,
+      udemy: aggregated.udemy,
     },
   });
 };

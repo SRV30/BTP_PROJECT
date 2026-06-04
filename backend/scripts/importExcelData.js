@@ -21,7 +21,7 @@ const FIELD_ALIASES = {
   whatsapp: ['whatsapp', 'whatsapp_mins', 'whatsapp_usage', 'whatsapp_minutes'],
   linkedin: ['linkedin', 'linkedin_mins', 'linkedin_usage', 'linkedin_minutes'],
   gmail: ['gmail', 'gmail_mins', 'gmail_usage', 'gmail_minutes'],
-  unacademy: ['unacademy', 'unacademy_mins', 'unacademy_usage', 'unacademy_minutes'],
+  udemy: ['udemy', 'udemy_mins', 'udemy_usage', 'udemy_minutes'],
   moodScore: ['moodScore', 'mood_score'],
   moodLabel: ['moodLabel', 'mood_label', 'mood'],
   stressScore: ['stressScore', 'stress_score'],
@@ -157,7 +157,7 @@ const buildMetricPayload = ({ row, userId }) => {
     whatsapp: toNumber(getRowValue(row, FIELD_ALIASES.whatsapp)),
     linkedin: toNumber(getRowValue(row, FIELD_ALIASES.linkedin)),
     gmail: toNumber(getRowValue(row, FIELD_ALIASES.gmail)),
-    unacademy: toNumber(getRowValue(row, FIELD_ALIASES.unacademy)),
+    udemy: toNumber(getRowValue(row, FIELD_ALIASES.udemy)),
   }
   const mood = calculateMood({ sleep: sleepHours, steps, screenTime, appUsage })
   const depressionRisk = normalizeDepressionRisk(

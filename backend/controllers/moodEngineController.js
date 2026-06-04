@@ -5,7 +5,7 @@ const buildAppUsage = (body) => ({
   whatsapp: body.appUsage?.whatsapp ?? body.whatsapp,
   linkedin: body.appUsage?.linkedin ?? body.linkedin,
   gmail: body.appUsage?.gmail ?? body.gmail,
-  unacademy: body.appUsage?.unacademy ?? body.unacademy,
+  udemy: body.appUsage?.udemy ?? body.udemy,
 })
 
 const validateMoodInput = ({ sleep, sleepHours, steps, screenTime }) => {

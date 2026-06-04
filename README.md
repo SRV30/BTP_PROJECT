@@ -158,7 +158,7 @@ Protected frontend pages use a Context API auth provider and redirect unauthenti
 | `POST` | `/api/mood-engine/preview` | Calculate `moodScore` and `moodLabel` from sleep, steps, screen time, and app usage without storing data |
 | `POST` | `/api/mood-engine` | Protected route that calculates mood output and stores/updates the user's `DailyMetrics` record |
 
-Mood Engine labels are normalized to `Happy`, `Neutral`, or `Sad`. The protected storage endpoint accepts `sleep` or `sleepHours`, `steps`, `screenTime`, `date`, and `appUsage` fields such as `instagram`, `whatsapp`, `linkedin`, `gmail`, and `unacademy`.
+Mood Engine labels are normalized to `Happy`, `Neutral`, or `Sad`. The protected storage endpoint accepts `sleep` or `sleepHours`, `steps`, `screenTime`, `date`, and `appUsage` fields such as `instagram`, `whatsapp`, `linkedin`, `gmail`, and `udemy`.
 
 ### Stress Engine
 

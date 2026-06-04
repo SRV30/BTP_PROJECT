@@ -67,7 +67,7 @@ const dailyLogSchema = new mongoose.Schema(
       default: 0,
     },
 
-    unacademyUsage: {
+    udemyUsage: {
       type: Number,
       min: 0,
       default: 0,
