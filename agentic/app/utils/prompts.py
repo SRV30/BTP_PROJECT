@@ -9,45 +9,53 @@ MoodSense AI analysis rules:
 """.strip()
 
 BEHAVIOR_TASK_PROMPT = """
-Analyze behavioral metrics for {userName} on {currentDate} ({currentTimeSlot}).
-Focus on sleep ({averageSleep}h), steps ({averageSteps}), screen time ({averageScreenTime}h),
-Instagram ({instagramUsage} min), WhatsApp ({whatsappUsage} min), LinkedIn ({linkedinUsage} min),
-Gmail ({gmailUsage} min), Udemy ({udemyUsage} min), weekly trend ({weeklyTrend}),
-and weekly mood scores {weeklyMoodScores}.
-Consider the long-term wellness patterns: Sleep ({sleepPattern}), Activity ({activityPattern}), and Screen Time ({screenTimePattern}).
-Identify positive and negative behavioral patterns only.
-Do not predict mood. Do not calculate stress.
+Analyze the behavioral state for {userName} by evaluating three distinct layers:
+
+1. CURRENT METRICS (Snapshot of {currentDate}, {currentTimeSlot}):
+- Social/App Usage: Instagram ({instagramUsage} min), WhatsApp ({whatsappUsage} min)
+- Productivity/Focus: LinkedIn ({linkedinUsage} min), Gmail ({gmailUsage} min), Udemy ({udemyUsage} min)
+
+2. HISTORICAL METRICS (Weekly Context):
+- Averages: Sleep ({averageSleep}h), Steps ({averageSteps}), Screen Time ({averageScreenTime}h)
+- Momentum: Weekly trend is {weeklyTrend} with scores {weeklyMoodScores}.
+- Distribution: {happyDays} Happy, {neutralDays} Neutral, {sadDays} Sad days.
+
+3. WELLNESS PROFILE (Long-term patterns):
+- Patterns: Sleep is {sleepPattern}, Activity is {activityPattern}, Screen Time is {screenTimePattern}.
+
+Identify how today's metrics align with or deviate from historical trends and the established wellness profile.
+Identify positive and negative behavioral patterns only. Do not predict mood or calculate stress.
 Return only JSON: {{"behaviorSummary":"..."}}
 """.strip()
 
 MOOD_STRESS_TASK_PROMPT = """
-Explain the already-calculated mood and stress results using the behavior summary.
-Mood score: {moodScore}/100. Mood label: {moodLabel}.
-Stress score: {stressScore}/100. Stress level: {stressLevel}.
-Use the behavior summary from the previous task context.
-Do not modify or recalculate mood or stress. Only explain why these values may align with the metrics.
+Explain the engine-calculated mood ({moodScore}/100, {moodLabel}) and stress ({stressScore}/100, {stressLevel}).
+Reference the behavior summary to explain why these values may have been reached.
+Specifically, note if the current metrics ({currentDate}) represent a deviation from the {userName}'s Wellness Profile ({sleepPattern} sleep, {activityPattern} activity) or align with the {weeklyTrend} weekly momentum.
+Do not modify or recalculate mood or stress.
 Return only JSON: {{"moodAnalysis":"...","stressAnalysis":"..."}}
 """.strip()
 
 DEPRESSION_TASK_PROMPT = """
 Explain the already-calculated depression risk: {depressionRisk}.
-Use sleep, screen time, steps, mood history, and the behavior summary from the previous task context.
-Never diagnose depression. Never claim medical certainty.
-The response must include this exact sentence: This is not a medical diagnosis.
+Analyze this risk by contextualizing current activity against the Wellness Profile ({activityPattern} activity, {screenTimePattern} screen time) and the 7-day mood history ({weeklyMoodScores}).
+Explain if current behavior suggests a temporary dip or a pattern consistent with the risk level.
+Never diagnose. The response must include this exact sentence: This is not a medical diagnosis.
 Return only JSON: {{"depressionAnalysis":"..."}}
 """.strip()
 
 PREDICTION_TASK_PROMPT = """
-Explain the already-existing tomorrow mood prediction.
-Tomorrow mood: {tomorrowMood}. Confidence: {tomorrowConfidence}%.
-Weekly trend: {weeklyTrend}. Use the behavior summary from the previous task context.
-Do not predict or change the prediction. Explain why it may be reasonable based on supplied metrics.
+Explain the tomorrow mood prediction: {tomorrowMood} (Confidence: {tomorrowConfidence}%).
+Explain why this forecast is reasonable by looking at the {weeklyTrend} weekly trend and whether today's metrics ({currentDate}) are moving toward or away from the established Wellness Profile patterns.
+Do not change the prediction.
 Return only JSON: {{"predictionAnalysis":"..."}}
 """.strip()
 
 WELLNESS_TASK_PROMPT = """
-Create exactly three personalized, actionable wellness recommendations based only on supplied metrics and prior analysis.
-No medical advice. Keep each recommendation clear and concise.
-Use the previous task context for behavior, mood, stress, depression, and prediction analysis.
+Create exactly three personalized, actionable wellness recommendations.
+Recommendations should bridge the gap between current behavior and the {userName}'s Wellness Profile goals.
+If current behavior is better than the profile ({activityPattern}, {sleepPattern}), suggest maintenance.
+If current behavior is worse, suggest small, corrective steps.
+No medical advice. Clear and concise.
 Return only JSON: {{"recommendations":[{{"title":"...","description":"..."}},{{"title":"...","description":"..."}},{{"title":"...","description":"..."}}]}}
 """.strip()
