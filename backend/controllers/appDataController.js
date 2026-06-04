@@ -1,6 +1,7 @@
 const AgentReports = require('../models/AgentReports')
 const DailyMetrics = require('../models/DailyMetrics')
 const { analyzeDailyMetrics, buildFastApiPayload } = require('../services/aiService')
+const { calculatePrediction } = require('../services/predictionEngineService')
 
 const dayName = (date) => new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(new Date(date))
 
@@ -383,11 +384,8 @@ const getPredictions = async (req, res, next) => {
   try {
     const metrics = await getMetrics(req.user._id)
     const latest = getLatest(metrics)
-    const prediction = latest.tomorrowPrediction || { moodLabel: latest.moodLabel, moodScore: latest.moodScore, confidence: 70, stressScore: latest.stressScore }
-    const confidence = Number(prediction.confidence || 0)
-    const expectedSleep = Number(latest.sleepHours || 0) >= 7 ? Number(latest.sleepHours || 0) : Number(latest.sleepHours || 0) + 0.5
-    const expectedSteps = Math.round(Number(latest.steps || 0) * 1.05)
-    const expectedScreenTime = Math.max(0, Number(latest.screenTime || 0) - 0.25)
+    const prediction = calculatePrediction(metrics)
+    const confidence = prediction.confidence
 
     return res.status(200).json({
       tomorrowMood: prediction.moodLabel,
@@ -397,9 +395,9 @@ const getPredictions = async (req, res, next) => {
       moodForecast: toDailyData(metrics).map((metric, index) => ({ day: metric.day, value: Math.min(100, metric.mood + index) })),
       stressForecast: toDailyData(metrics).map((metric, index) => ({ day: metric.day, value: Math.max(0, metric.stress - index) })),
       behavioralForecast: [
-        { label: 'Expected Sleep', value: `${expectedSleep.toFixed(1)}h`, icon: '☾', tone: 'text-cyan-300' },
-        { label: 'Expected Steps', value: expectedSteps.toLocaleString(), icon: '🚶', tone: 'text-emerald-300' },
-        { label: 'Expected Screen Time', value: `${expectedScreenTime.toFixed(1)}h`, icon: '▯', tone: 'text-violet-300' },
+        { label: 'Expected Sleep', value: `${prediction.expectedSleep.toFixed(1)}h`, icon: '☾', tone: 'text-cyan-300' },
+        { label: 'Expected Steps', value: prediction.expectedSteps.toLocaleString(), icon: '🚶', tone: 'text-emerald-300' },
+        { label: 'Expected Screen Time', value: `${prediction.expectedScreenTime.toFixed(1)}h`, icon: '▯', tone: 'text-violet-300' },
       ],
       confidenceLevels: [
         { label: 'Model Confidence', value: confidence, color: 'bg-emerald-400' },

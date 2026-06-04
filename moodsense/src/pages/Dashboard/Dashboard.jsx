@@ -60,34 +60,24 @@ const buildOverviewCards = ({ today, weeklyMoodTrend = [] }) => [
 ]
 
 const Dashboard = () => {
-  const loadDashboardData = useCallback(async () => {
-    const [dash, latestLog] = await Promise.all([
-      appApi.dashboard(),
-      appApi.getLatestLog().catch(() => null),
-    ])
-    return { ...dash, latestLog }
-  }, [])
-
+  const loadDashboardData = useCallback(() => appApi.dashboard(), [])
   const { data, error, isLoading } = useApiResource(loadDashboardData)
 
-  const getMergedToday = () => {
+  const getTodayWithLiveStatus = () => {
     if (!data?.today) return null
-    const { today, latestLog } = data
+    const { today } = data
 
-    // Fallback strategy: use DailyLog if it's from today, otherwise fallback to aggregated DailyMetrics
-    const isLogFromToday = latestLog &&
-      new Date(latestLog.date).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]
+    // Metrics are already aggregated in real-time by the backend on each log save.
+    // We just check if the today object returned by the API is actually for the current date.
+    const isToday = new Date(today.date).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]
 
     return {
       ...today,
-      sleepHours: isLogFromToday ? latestLog.sleep : today.sleepHours,
-      steps: isLogFromToday ? latestLog.steps : today.steps,
-      screenTime: isLogFromToday ? latestLog.screenTime : today.screenTime,
-      isLive: isLogFromToday
+      isLive: isToday
     }
   }
 
-  const today = getMergedToday()
+  const today = getTodayWithLiveStatus()
   const weeklyMoodTrend = data?.weeklyMoodTrend || []
   const cards = buildOverviewCards({ today, weeklyMoodTrend })
   const predictionTrend = weeklyMoodTrend.map((item) => ({ day: item.day, value: item.mood }))
