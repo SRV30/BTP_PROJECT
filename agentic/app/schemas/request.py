@@ -62,6 +62,9 @@ class AnalysisRequest(BaseModel):
     neutralDays: int = Field(ge=0, le=7)
     sadDays: int = Field(ge=0, le=7)
     weeklyMoodScores: list[int] = Field(min_length=7, max_length=7)
+    sleepPattern: str = Field(min_length=1, max_length=50)
+    activityPattern: str = Field(min_length=1, max_length=50)
+    screenTimePattern: str = Field(min_length=1, max_length=50)
 
     model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
