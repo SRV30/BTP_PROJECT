@@ -1,9 +1,11 @@
 export const WellnessProfileCard = ({ profile, className = '' }) => {
   const patterns = [
-    { label: 'Sleep Pattern', value: profile?.sleepPattern || 'Calculating...', color: 'text-sky-400', bg: 'bg-sky-400/10' },
-    { label: 'Activity Pattern', value: profile?.activityPattern || 'Calculating...', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { label: 'Screen usage', value: profile?.screenTimePattern || 'Calculating...', color: 'text-violet-400', bg: 'bg-violet-400/10' },
+    { label: 'Sleep Pattern', value: profile?.sleepPattern || 'Pending', color: 'text-sky-400', bg: 'bg-sky-400/10' },
+    { label: 'Activity Pattern', value: profile?.activityPattern || 'Pending', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Screen usage', value: profile?.screenTimePattern || 'Pending', color: 'text-violet-400', bg: 'bg-violet-400/10' },
   ]
+
+  const days = profile?.daysAnalyzed || 0
 
   return (
     <div className={`relative flex flex-col rounded-[2.5rem] border border-white/10 bg-slate-900/40 p-8 ${className}`}>
@@ -25,7 +27,7 @@ export const WellnessProfileCard = ({ profile, className = '' }) => {
 
       <div className="mt-8 rounded-2xl border border-dashed border-white/10 p-4 text-center">
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-          Last 30 Days Baseline
+          {days > 0 ? `Based on ${days} day(s) of data` : 'Insufficient data for baseline'}
         </p>
       </div>
     </div>

@@ -1,21 +1,23 @@
 const DailyMetrics = require("../models/DailyMetrics");
 
 const calculateWellnessPatterns = (metrics = []) => {
-  if (!metrics.length) return null
+  const filteredMetrics = metrics.filter(Boolean)
+  if (!filteredMetrics.length) return null
 
-  const recent30 = metrics
-    .filter(Boolean)
+  const recentData = filteredMetrics
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 30)
 
-  const avgSleep = recent30.reduce((s, m) => s + (m.sleepHours || 0), 0) / recent30.length
-  const avgSteps = recent30.reduce((s, m) => s + (m.steps || 0), 0) / recent30.length
-  const avgScreenTime = recent30.reduce((s, m) => s + (m.screenTime || 0), 0) / recent30.length
+  const daysAnalyzed = recentData.length
+  const avgSleep = recentData.reduce((s, m) => s + (m.sleepHours || 0), 0) / daysAnalyzed
+  const avgSteps = recentData.reduce((s, m) => s + (m.steps || 0), 0) / daysAnalyzed
+  const avgScreenTime = recentData.reduce((s, m) => s + (m.screenTime || 0), 0) / daysAnalyzed
 
   return {
     sleepPattern: avgSleep >= 7 ? 'Good' : 'Poor',
     activityPattern: avgSteps >= 6000 ? 'Active' : 'Moderate',
     screenTimePattern: avgScreenTime <= 5 ? 'Healthy' : 'High',
+    daysAnalyzed,
   }
 }
 

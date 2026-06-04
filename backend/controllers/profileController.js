@@ -1,5 +1,6 @@
 const DailyMetrics = require('../models/DailyMetrics')
 const User = require('../models/User')
+const { calculateWellnessPatterns } = require('../services/userWellnessProfileService')
 
 const average = (values) => {
   if (values.length === 0) return 0
@@ -66,6 +67,7 @@ const getProfile = async (req, res, next) => {
       stats: buildProfileStats(metrics),
       achievements: buildAchievements(metrics),
       activityHistory: buildActivityHistory(metrics),
+      wellnessProfile: calculateWellnessPatterns(metrics),
     })
   } catch (error) {
     return next(error)
