@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "description": "FastAPI Deployment on Vercel is possible but not recommended for CrewAI due to execution time limits (10s on hobby, 60s on pro). Render is preferred for long-running AI agent tasks.",
+  "builds": [
+    {
+      "src": "app/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app/main.py"
+    }
+  ]
+}
