@@ -1,7 +1,7 @@
 export const appStore = {
   productName: 'MoodSense AI',
   currentUser: {
-    name: 'Alex Morgan',
+    name: 'Sahil',
     role: 'Wellness Analyst',
   },
 }
