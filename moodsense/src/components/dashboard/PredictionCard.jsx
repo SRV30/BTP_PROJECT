@@ -16,6 +16,7 @@ export const PredictionCard = ({ prediction, trend = [] }) => {
           <p className="text-slate-400">Likely <span className="font-bold text-white">{prediction?.moodLabel || 'Unavailable'}</span></p>
           <p className="mt-1 text-2xl font-black text-violet-300">{Number.isFinite(confidence) ? confidence : '—'}% <span className="text-sm font-medium text-slate-300">Confidence</span></p>
         </div>
+        <p className="text-sm text-slate-400">Also external factors will be considered in the prediction.</p>
       </div>
       <div className="mt-5 h-24">
         <ResponsiveContainer height="100%" width="100%">
